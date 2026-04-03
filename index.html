@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musique Infinie</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+</head>
+<body style="background: #1a1a1a; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif;">
+
+    <h1 style="font-weight: 300; margin-bottom: 50px; letter-spacing: 1px;">Musique Infinie</h1>
+    
+    <button id="mainBtn" style="padding: 15px 40px; font-size: 18px; border-radius: 50px; border: none; background: #4CAF50; color: white; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+        Lancer la musique
+    </button>
+
+    <script>
+        const btn = document.getElementById('mainBtn');
+        let isPlaying = false;
+
+        // 1. Le Synthé "Doux" (Onde pure Sine sans harmoniques métalliques)
+        const piano = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "sine" }, 
+            envelope: { attack: 1.5, decay: 5, sustain: 0.2, release: 12 }
+        }).toDestination();
+
+        // 2. LE FILTRE ANTI-MÉTAL (Très bas : 300Hz)
+        // C'est lui qui rend le son "feutré" et sourd comme un piano lointain
+        const velvetFilter = new Tone.Filter({
+            frequency: 300, 
+            type: "lowpass",
+            rolloff: -24 // Pente raide pour bien couper les aigus
+        }).toDestination();
+
+        // 3. La Réverbération (Le nuage sonore)
+        const cloudReverb = new Tone.Reverb({ decay: 15, wet: 0.6 }).toDestination();
+        
+        piano.connect(velvetFilter);
+        velvetFilter.connect(cloudReverb);
+        piano.volume.value = -15;
+
+        // Gamme Ellipse (très stable et calme)
+        const notes = ["F2", "Ab2", "C3", "Eb3", "F3", "Ab3", "C4"];
+
+        // La boucle de flux continu (1 1 1 1 0 1)
+        const loop = new Tone.Loop((time) => {
+            // 85% de chance de jouer pour garder le flux
+            if (Math.random() > 0.15) {
+                const n = notes[Math.floor(Math.random() * notes.length)];
+                // On joue des notes qui durent (pédale virtuelle)
+                piano.triggerAttackRelease(n, "1n", time);
+            }
+        }, "2n"); 
+
+        btn.addEventListener('click', async () => {
+            if (!isPlaying) {
+                await Tone.start();
+                Tone.Transport.start();
+                loop.start(0);
+                btn.innerText = "Arrêter la musique";
+                btn.style.background = "#555";
+                isPlaying = true;
+            } else {
+                Tone.Transport.stop();
+                loop.stop();
+                piano.releaseAll();
+                btn.innerText = "Lancer la musique";
+                btn.style.background = "#4CAF50";
+                isPlaying = false;
+            }
+        });
+    </script>
+</body>
+</html>
