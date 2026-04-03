@@ -3,6 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V3.2 - ORCHESTRE</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body { background: #001219; color: #ee9b00; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Garamond', serif; }
+        #mainBtn { width: 150px; height: 150px; border: 1px solid #ee9b00; border-radius: 50%; background: transparent; color: #ee9b00; cursor: pointer; font-size: 14px; letter-spacing: 3px; text-transform: uppercase; transition: 0.5s; box-shadow: inset 0 0 10px rgba(238, 155, 0, 0.1); }
+        #mainBtn:hover { background: rgba(238, 155, 0, 0.05); box-shadow: 0 0 20px rgba(238, 155, 0, 0.2); }
+        h1 { font-weight: 100; margin-bottom: 40px; letter-spacing: 12px; opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+    <h1>SYMPHONIE D'ÉTUDE</h1>
+    <button id="mainBtn">Immersion</button>
+
+    <script>
+        const btn = document.getElementById('mainBtn');
+        let isPlaying = false;
+
+        // 1. PIANO (Référence V2.4)
+        const piano = new Tone.Sampler({
+            urls: { "C4": "C4.mp3", "A3": "A3.mp3" },
+            baseUrl: "https://tonejs.github.io/audio/salamander/",
+        }).toDestination();
+        piano.volume.value = -8;
+
+        // 2. HARPE (Nouvel Instrument) - On utilise un PolySynth très brillant et doux
+        const harp = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "sine" },
+            envelope: { attack: 0.1, decay: 1, sustain: 0, release: 3 }
+        }).toDestination();
+        harp.volume.value = -25;
+
+        // 3. CORDES (Nappe de fond / Remplace le Rhodes)
+        const strings = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "triangle" },
+            envelope: { attack: 4, release: 6 }
+        }).toDestination();
+        const sFilter = new Tone.Filter(200, "lowpass").toDestination();
+        strings.connect(sFilter);
+        strings.volume.value = -30;
+
+        // 4. BASSE (Contrebasse sourde)
+        const cello = new Tone.MonoSynth({
+            oscillator: { type: "sine" },
+            envelope: { attack: 3, release: 5 }
+        }).toDestination();
+        cello.volume.value = -28;
+
+        const progression = [
+            ["F2", "A3", "C4", "E4", "G4"], // Fa Majeur 9
+            ["D2", "F3", "A3", "C4", "F4"], // Ré mineur 7
+            ["Bb1", "D3", "F3", "A3", "D4"],// Sib Majeur 7
+            ["C2", "E3", "G3", "Bb3", "E4"] // Do 7
+        ];
+        let currentIdx = 0;
+        let step = 0;
+
+        const loop = new Tone.Loop((time) => {
+            step++;
+
+            // Changement d'accord toutes les 8 mesures (32 pulses)
+            if (step % 32 === 1) {
+                currentIdx = (currentIdx + 1) % progression.length;
+                const chord = progression[currentIdx];
+                
+                // On pose la nappe de Cordes et la Basse
+                strings.releaseAll();
+                strings.triggerAttack([chord[1], chord[2]], time);
+                cello.triggerAttackRelease(chord[0], "1n", time, 0.1);
+            }
+
+            const activeChord = progression[currentIdx];
+
+            // PIANO (Hasard V2.4)
+            if (Math.random() > 0.5) {
+                const note = activeChord[Math.floor(Math.random() * 2) + 2];
+                piano.triggerAttackRelease(note, "1n", time, 0.1);
+            }
+
+            // HARPE (Arpège aléatoire aigu)
+            if (Math.random() > 0.7) {
+                const hNote = activeChord[Math.floor(Math.random() * 2) + 3];
+                // On décale un peu la harpe pour ne pas taper en même temps que le piano
+                harp.triggerAttackRelease(hNote, "2n", time + 0.2, 0.05);
+            }
+
+        }, "4n");
+
+        btn.addEventListener('click', async () => {
+            if (!isPlaying) {
+                await Tone.start();
+                Tone.Transport.start();
+                loop.start(0);
+                btn.innerText = "Pause";
+                isPlaying = true;
+            } else {
+                Tone.Transport.stop();
+                loop.stop();
+                strings.releaseAll();
+                btn.innerText = "Immersion";
+                isPlaying = false;
+            }
+        });
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>V1.6 - COHÉRENCE</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
