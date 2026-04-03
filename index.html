@@ -3,67 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V1.5 - RÉSONANCE</title>
+    <title>V1.6 - COHÉRENCE</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        body { background: #000; color: #d4af37; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: serif; }
-        #mainBtn { padding: 20px 50px; border: 1px solid #d4af37; background: transparent; color: #d4af37; cursor: pointer; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
-        h1 { font-weight: 200; letter-spacing: 5px; margin-bottom: 30px; }
+        body { background: #2c3e50; color: #d4af37; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: serif; }
+        #mainBtn { width: 140px; height: 140px; border-radius: 50%; border: 2px solid #d4af37; background: transparent; color: #d4af37; cursor: pointer; font-variant: small-caps; letter-spacing: 2px; }
+        h1 { font-weight: 200; margin-bottom: 30px; opacity: 0.6; }
     </style>
 </head>
 <body>
 
-    <h1>V1.5 • RÉSONANCE</h1>
-    <button id="mainBtn">CHARGEMENT</button>
+    <h1>V1.6 • Harmonie</h1>
+    <button id="mainBtn">Charger</button>
 
     <script>
         const btn = document.getElementById('mainBtn');
         let isPlaying = false;
 
-        // Le Sampler (Sons réels de piano)
+        // 1. LE PIANO (Mélodie)
         const piano = new Tone.Sampler({
             urls: { "C4": "C4.mp3", "A3": "A3.mp3" },
             baseUrl: "https://tonejs.github.io/audio/salamander/",
-            onload: () => { btn.innerText = "DÉBUTER"; }
+            onload: () => { btn.innerText = "Écouter"; }
         }).toDestination();
-        
-        const filter = new Tone.Filter(350, "lowpass").toDestination();
-        piano.connect(filter);
         piano.volume.value = -5;
 
-        // Échelles de notes (Base V8)
-        const scale = ["C3", "D3", "E3", "G3", "A3", "C4", "D4"];
-        let currentIndex = 3;
+        // 2. LE RHODES (Ancrage/Basse douce)
+        const rhodes = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "sine" },
+            envelope: { attack: 3, release: 5 }
+        }).toDestination();
+        const rFilter = new Tone.Filter(200, "lowpass").toDestination();
+        rhodes.connect(rFilter);
+        rhodes.volume.value = -25;
+
+        // ACCORDS POUR LA COHÉRENCE
+        const chords = [
+            ["C3", "E3", "G3", "B3"], // Accord 1
+            ["A2", "C3", "E3", "G3"], // Accord 2
+            ["F2", "A2", "C3", "E3"]  // Accord 3
+        ];
+        let currentChordIdx = 0;
+        let step = 0;
 
         const loop = new Tone.Loop((time) => {
-            if (Math.random() > 0.4) {
-                // Marche de l'ivrogne
-                const move = Math.floor(Math.random() * 3) - 1;
-                currentIndex = Math.max(0, Math.min(scale.length - 1, currentIndex + move));
-                
-                const note = scale[currentIndex];
-                
-                // 1. La note principale
-                piano.triggerAttackRelease(note, "1n", time, 0.2);
+            step++;
 
-                // 2. Le "Miroir" (une octave plus bas, très doux)
-                // On retire le chiffre (ex: "C4" devient "C") et on met "2"
-                const lowNote = note.replace(/[0-9]/g, '') + "2"; 
-                piano.triggerAttackRelease(lowNote, "1n", time, 0.05);
+            // Changement d'accord toutes les 8 mesures (32 steps)
+            if (step % 32 === 1) {
+                currentChordIdx = (currentChordIdx + 1) % chords.length;
+                const rootNote = chords[currentChordIdx][0];
+                rhodes.releaseAll();
+                rhodes.triggerAttack(rootNote, time); // La basse pose le décor
             }
-        }, "2n");
+
+            // Piano mélodie (puise dans l'accord actuel pour la cohérence)
+            if (Math.random() > 0.4) {
+                const currentNotes = chords[currentChordIdx];
+                const note = currentNotes[Math.floor(Math.random() * currentNotes.length)];
+                
+                // On ajoute une octave pour la mélodie
+                const melodyNote = note.replace(/[0-9]/g, '') + "4";
+                piano.triggerAttackRelease(melodyNote, "1n", time, Math.random() * 0.2 + 0.1);
+            }
+        }, "4n");
 
         btn.addEventListener('click', async () => {
             if (!isPlaying) {
                 await Tone.start();
                 Tone.Transport.start();
                 loop.start(0);
-                btn.innerText = "SILENCE";
+                btn.innerText = "Pause";
                 isPlaying = true;
             } else {
                 Tone.Transport.stop();
                 loop.stop();
-                btn.innerText = "DÉBUTER";
+                rhodes.releaseAll();
+                btn.innerText = "Écouter";
                 isPlaying = false;
             }
         });
