@@ -3,68 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V9 - HARMONIE</title>
+    <title>V1.1 - EVOLUTION</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        body { background: #fff; color: #2c3e50; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Helvetica Neue', sans-serif; }
-        #mainBtn { padding: 15px 40px; border: 1px solid #2c3e50; background: transparent; color: #2c3e50; cursor: pointer; text-transform: uppercase; font-weight: 300; letter-spacing: 3px; }
-        h1 { font-weight: 200; margin-bottom: 30px; color: #bdc3c7; }
+        body { background: #000; color: #ecf0f1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: serif; }
+        #mainBtn { padding: 15px 40px; border: 1px solid #ecf0f1; background: transparent; color: #ecf0f1; cursor: pointer; transition: 0.5s; }
+        #mainBtn:hover { background: #ecf0f1; color: #000; }
+        h1 { font-weight: 200; letter-spacing: 4px; font-style: italic; color: #7f8c8d; }
     </style>
 </head>
 <body>
 
-    <h1>V9 • RESONANCE</h1>
-    <button id="mainBtn">CHARGEMENT</button>
+    <h1>V1.1 • Murmure</h1>
+    <button id="mainBtn">CHARGEMENT...</button>
 
     <script>
         const btn = document.getElementById('mainBtn');
         let isPlaying = false;
 
+        // Sampler avec un Release très long pour le coté "Nuage"
         const sampler = new Tone.Sampler({
             urls: { "C4": "C4.mp3", "A3": "A3.mp3", "F3": "F3.mp3" },
             baseUrl: "https://tonejs.github.io/audio/salamander/",
-            onload: () => { btn.innerText = "LANCER"; }
+            onload: () => { btn.innerText = "ECOUTER"; }
         }).toDestination();
 
-        const filter = new Tone.Filter(380, "lowpass").toDestination();
+        const filter = new Tone.Filter(350, "lowpass").toDestination();
         sampler.connect(filter);
 
-        // --- LES DEUX CERVEAUX ---
-        const moods = [
-            ["F2", "A2", "C3", "E3", "G3"], // Rêveur (Fa Majeur 7)
-            ["D2", "F2", "A2", "C3", "F3"], // Mélancolique (Ré mineur 7)
-            ["G2", "B2", "D3", "F3", "G3"]  // Suspendu
-        ];
-        
-        let currentMood = 0;
-        let step = 0;
+        // Configuration de la marche (Base V8)
+        const scale = ["C3", "D3", "E3", "G3", "A3", "C4", "D4", "E4", "G4", "A4"];
+        let currentIndex = 5;
 
         const loop = new Tone.Loop((time) => {
-            step++;
-
-            // Toutes les 16 notes, on change d'accord (le "cerveau" évolue)
-            if (step % 16 === 0) {
-                currentMood = Math.floor(Math.random() * moods.length);
-            }
-
+            // Règle de silence (on joue 60% du temps)
             if (Math.random() > 0.4) {
-                const currentScale = moods[currentMood];
-                const note = currentScale[Math.floor(Math.random() * currentScale.length)];
                 
-                // Humanisation : micro-décalage (swing)
-                const humanTime = time + (Math.random() * 0.1); 
+                // Marche de l'ivrogne améliorée
+                const move = Math.floor(Math.random() * 3) - 1;
+                currentIndex = Math.max(0, Math.min(scale.length - 1, currentIndex + move));
                 
-                // Humanisation : force de frappe très légère
-                const velocity = Math.random() * 0.25 + 0.05;
+                const note = scale[currentIndex];
+                const velocity = Math.random() * 0.2 + 0.1;
 
-                sampler.triggerAttackRelease(note, "1n", humanTime, velocity);
-            }
-            
-            // Une note de basse profonde de temps en temps
-            if (step % 8 === 0) {
-                sampler.triggerAttackRelease(moods[currentMood][0], "2n", time, 0.1);
-            }
+                // On joue la note avec une durée très longue ("1n") pour le sustain
+                sampler.triggerAttackRelease(note, "1n", time, velocity);
 
+                // Petite chance de jouer une "note fantôme" juste après (effet cascade)
+                if (Math.random() > 0.8) {
+                    const graceNote = scale[Math.max(0, currentIndex - 2)];
+                    sampler.triggerAttackRelease(graceNote, "1n", time + 0.2, 0.05);
+                }
+            }
         }, "4n");
 
         btn.addEventListener('click', async () => {
@@ -72,12 +62,12 @@
                 await Tone.start();
                 Tone.Transport.start();
                 loop.start(0);
-                btn.innerText = "ARRET";
+                btn.innerText = "PAUSE";
                 isPlaying = true;
             } else {
                 Tone.Transport.stop();
                 loop.stop();
-                btn.innerText = "LANCER";
+                btn.innerText = "ECOUTER";
                 isPlaying = false;
             }
         });
