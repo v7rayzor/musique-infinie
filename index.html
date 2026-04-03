@@ -3,51 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Musique Infinie</title>
+    <title>Musique Infinie V3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        body { background: #1a1a1a; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        /* CHANGEMENT DE COULEUR POUR DISTINCTION : BLEU NUIT */
+        body { background: #0a1118; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
         #mainBtn { padding: 15px 40px; font-size: 18px; border-radius: 50px; border: none; background: #4CAF50; color: white; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
     </style>
 </head>
 <body>
 
-    <h1 style="font-weight: 300; margin-bottom: 50px;">Musique Infinie</h1>
+    <h1 style="font-weight: 300; margin-bottom: 50px; letter-spacing: 1px;">Musique Infinie V3</h1>
     <button id="mainBtn">Lancer la musique</button>
 
     <script>
         const btn = document.getElementById('mainBtn');
         let isPlaying = false;
 
-        // RÉGLAGES DE SÉCURITÉ MOBILE
-        Tone.context.lookAhead = 0.3; // On donne encore plus de marge
+        // RÉGLAGE DE SÉCURITÉ MAXIMALE POUR MOBILE
+        Tone.context.lookAhead = 0.5; // On donne une demi-seconde d'avance (énorme !)
         Tone.context.latencyHint = "playback";
 
-        // Instrument optimisé
-        const piano = new Tone.PolySynth(Tone.Synth, {
+        // Un synthé Mono (une seule voix) pour économiser 80% de processeur
+        const piano = new Tone.Synth({
             oscillator: { type: "sine" },
-            envelope: { attack: 2, decay: 2, sustain: 0.3, release: 6 }
+            envelope: { attack: 3, decay: 4, sustain: 0.5, release: 5 }
         }).toDestination();
 
-        // REMPLACEMENT DE LA REVERB PAR UN DELAY LÉGER (Anti-scratch)
-        const delay = new Tone.FeedbackDelay({
-            delayTime: "2n",
-            feedback: 0.5,
-            wet: 0.3
-        }).toDestination();
-
+        // Effet ultra-léger (Filtre + Echo simple)
         const lowpass = new Tone.Filter(300, "lowpass").toDestination();
+        const delay = new Tone.FeedbackDelay("2n", 0.4).toDestination();
         
         piano.connect(lowpass);
         lowpass.connect(delay);
         piano.volume.value = -20;
 
-        const notes = ["F2", "Ab2", "C3", "Eb3", "F3", "Ab3", "C4"];
+        const notes = ["F2", "Ab2", "C3", "Eb3", "F3", "Ab3"];
 
         const loop = new Tone.Loop((time) => {
-            if (Math.random() > 0.2) {
+            if (Math.random() > 0.3) {
                 const n = notes[Math.floor(Math.random() * notes.length)];
-                piano.triggerAttackRelease(n, "1n", time);
+                // On déclenche la note avec le temps exact calculé par Tone
+                piano.triggerAttackRelease(n, "2n", time);
             }
         }, "2n");
 
@@ -56,13 +53,13 @@
                 await Tone.start();
                 Tone.Transport.start();
                 loop.start(0);
-                btn.innerText = "Arrêter la musique";
-                btn.style.background = "#555";
+                btn.innerText = "Arrêter";
+                btn.style.background = "#333";
                 isPlaying = true;
             } else {
                 Tone.Transport.stop();
                 loop.stop();
-                piano.releaseAll();
+                piano.triggerRelease();
                 btn.innerText = "Lancer la musique";
                 btn.style.background = "#4CAF50";
                 isPlaying = false;
