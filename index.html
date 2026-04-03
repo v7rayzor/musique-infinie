@@ -2,74 +2,62 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Musique Infinie V5</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V6 FLASH</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        /* FOND DÉGRADÉ POUR DISTINCTION V5 */
-        body { background: linear-gradient(135deg, #121212 0%, #1a1a1a 100%); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        #mainBtn { padding: 15px 40px; font-size: 18px; border-radius: 50px; border: none; background: #3498db; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        /* FOND FLASHY : IMPOSSIBLE À RATER */
+        body { background: #d35400; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        #mainBtn { padding: 20px 50px; font-size: 20px; border-radius: 10px; border: 3px solid white; background: transparent; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h1 style="font-weight: 300; margin-bottom: 50px;">Musique Infinie V5</h1>
-    <button id="mainBtn">Lancer l'ambiance</button>
+    <h1 style="font-size: 40px;">V6 - FLASH</h1>
+    <button id="mainBtn">TESTER LE SON</button>
 
     <script>
         const btn = document.getElementById('mainBtn');
         let isPlaying = false;
 
-        // RÉGLAGES SÉCURITÉ (On garde ce qui a marché en V4)
-        Tone.context.lookAhead = 0.5;
-        Tone.context.latencyHint = "playback";
+        Tone.context.lookAhead = 0.6;
 
-        // Instrument : On repasse en PolySynth mais très léger
+        // Limiter à 3 voix maximum pour soulager le téléphone
         const piano = new Tone.PolySynth(Tone.Synth, {
+            maxPolyphony: 3, 
             oscillator: { type: "sine" },
-            envelope: { attack: 2.5, decay: 3, sustain: 0.4, release: 6 }
+            envelope: { attack: 2, decay: 1, sustain: 0.5, release: 4 }
         }).toDestination();
 
-        // L'effet "Espace" ultra-léger
-        const delay = new Tone.FeedbackDelay({
-            delayTime: "4n",
-            feedback: 0.6,
-            wet: 0.3
-        }).toDestination();
-
-        // Le Filtre "Sourd" (Style Ellipse)
-        const filter = new Tone.Filter(350, "lowpass").toDestination();
+        // Echo ultra simplifié
+        const delay = new Tone.FeedbackDelay("4n", 0.3).toDestination();
+        const filter = new Tone.Filter(400, "lowpass").toDestination();
         
         piano.connect(filter);
         filter.connect(delay);
-        piano.volume.value = -20;
+        piano.volume.value = -15;
 
-        // Notes choisies pour leur côté mélancolique
-        const notes = ["F2", "Ab2", "C3", "Eb3", "F3", "Ab3", "C4", "Eb4"];
+        const notes = ["F2", "Ab2", "C3", "Eb3", "F3", "Ab3"];
 
         const loop = new Tone.Loop((time) => {
-            // Probabilité de 75% pour garder le flux continu (1 1 1 0 1)
-            if (Math.random() > 0.25) {
+            if (Math.random() > 0.3) {
                 const n = notes[Math.floor(Math.random() * notes.length)];
-                // On joue des notes longues qui se chevauchent
-                piano.triggerAttackRelease(n, "1n", time);
+                piano.triggerAttackRelease(n, "2n", time);
             }
-        }, "2n");
+        }, "1n"); // On ralentit le rythme pour laisser respirer le CPU
 
         btn.addEventListener('click', async () => {
             if (!isPlaying) {
                 await Tone.start();
                 Tone.Transport.start();
                 loop.start(0);
-                btn.innerText = "Pause";
-                btn.style.background = "#555";
+                btn.innerText = "STOP";
                 isPlaying = true;
             } else {
                 Tone.Transport.stop();
                 loop.stop();
                 piano.releaseAll();
-                btn.innerText = "Lancer l'ambiance";
-                btn.style.background = "#3498db";
+                btn.innerText = "TESTER LE SON";
                 isPlaying = false;
             }
         });
