@@ -3,71 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V1.3 - PROFONDEUR</title>
+    <title>V1.5 - RÉSONANCE</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        body { background: #203140; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        #mainBtn { padding: 20px 40px; border-radius: 15px; border: 2px solid #fff; background: transparent; color: #fff; cursor: pointer; font-weight: bold; }
-        h1 { font-weight: 100; margin-bottom: 30px; letter-spacing: 5px; }
+        body { background: #000; color: #d4af37; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: serif; }
+        #mainBtn { padding: 20px 50px; border: 1px solid #d4af37; background: transparent; color: #d4af37; cursor: pointer; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); }
+        h1 { font-weight: 200; letter-spacing: 5px; margin-bottom: 30px; }
     </style>
 </head>
 <body>
 
-    <h1>V1.3 PROFONDEUR</h1>
+    <h1>V1.5 • RÉSONANCE</h1>
     <button id="mainBtn">CHARGEMENT</button>
 
     <script>
         const btn = document.getElementById('mainBtn');
         let isPlaying = false;
 
-        // 1. PIANO (On remonte le volume)
+        // Le Sampler (Sons réels de piano)
         const piano = new Tone.Sampler({
             urls: { "C4": "C4.mp3", "A3": "A3.mp3" },
             baseUrl: "https://tonejs.github.io/audio/salamander/",
-            onload: () => { btn.innerText = "LANCER L'IMMERSION"; }
+            onload: () => { btn.innerText = "DÉBUTER"; }
         }).toDestination();
-        piano.volume.value = -5; // Plus présent
+        
+        const filter = new Tone.Filter(350, "lowpass").toDestination();
+        piano.connect(filter);
+        piano.volume.value = -5;
 
-        // 2. VIOLONCELLE (Synthétique mais riche)
-        const cello = new Tone.MonoSynth({
-            oscillator: { type: "sawtooth" }, // Son plus riche que la nappe
-            envelope: { attack: 2, release: 3 }
-        }).toDestination();
-        const cFilter = new Tone.Filter(150, "lowpass").toDestination(); // Très sourd pour faire "basse"
-        cello.connect(cFilter);
-        cello.volume.value = -20;
-
-        const scale = ["C3", "D3", "E3", "G3", "A3", "C4"];
+        // Échelles de notes (Base V8)
+        const scale = ["C3", "D3", "E3", "G3", "A3", "C4", "D4"];
         let currentIndex = 3;
-        let step = 0;
 
         const loop = new Tone.Loop((time) => {
-            step++;
-
-            // PIANO : Toujours la marche de l'ivrogne
             if (Math.random() > 0.4) {
+                // Marche de l'ivrogne
                 const move = Math.floor(Math.random() * 3) - 1;
                 currentIndex = Math.max(0, Math.min(scale.length - 1, currentIndex + move));
-                piano.triggerAttackRelease(scale[currentIndex], "1n", time, 0.3);
-            }
+                
+                const note = scale[currentIndex];
+                
+                // 1. La note principale
+                piano.triggerAttackRelease(note, "1n", time, 0.2);
 
-            // VIOLONCELLE : Joue une basse toutes les 8 pulsations
-            if (step % 8 === 0) {
-                cello.triggerAttackRelease("C2", "2n", time, 0.2);
+                // 2. Le "Miroir" (une octave plus bas, très doux)
+                // On retire le chiffre (ex: "C4" devient "C") et on met "2"
+                const lowNote = note.replace(/[0-9]/g, '') + "2"; 
+                piano.triggerAttackRelease(lowNote, "1n", time, 0.05);
             }
-        }, "4n");
+        }, "2n");
 
         btn.addEventListener('click', async () => {
             if (!isPlaying) {
                 await Tone.start();
                 Tone.Transport.start();
                 loop.start(0);
-                btn.innerText = "STOP";
+                btn.innerText = "SILENCE";
                 isPlaying = true;
             } else {
                 Tone.Transport.stop();
                 loop.stop();
-                btn.innerText = "LANCER L'IMMERSION";
+                btn.innerText = "DÉBUTER";
                 isPlaying = false;
             }
         });
