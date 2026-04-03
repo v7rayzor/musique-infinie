@@ -3,68 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V7 - PIANO RÉEL</title>
+    <title>V8 - CERVEAU PIANO</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        body { background: #4a0e0e; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Georgia', serif; }
-        #mainBtn { padding: 20px 50px; font-size: 18px; border-radius: 5px; border: 2px solid white; background: transparent; color: white; cursor: pointer; }
-        h1 { font-weight: 300; font-style: italic; }
+        body { background: #000; color: #d4af37; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: serif; }
+        #mainBtn { padding: 20px 50px; font-size: 18px; border: 1px solid #d4af37; background: transparent; color: #d4af37; cursor: pointer; letter-spacing: 2px; }
+        h1 { font-weight: 200; letter-spacing: 5px; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-    <h1>V7 - Piano Immersif</h1>
-    <button id="mainBtn">CHARGEMENT...</button>
+    <h1>V8 - Composition</h1>
+    <button id="mainBtn">INITIALISATION...</button>
 
     <script>
         const btn = document.getElementById('mainBtn');
         let isPlaying = false;
 
-        // Échantillons de piano haute qualité (Salami Piano)
         const sampler = new Tone.Sampler({
-            urls: {
-                "A0": "A0.mp3",
-                "C1": "C1.mp3",
-                "A1": "A1.mp3",
-                "C2": "C2.mp3",
-                "A2": "A2.mp3",
-                "C3": "C3.mp3",
-                "A3": "A3.mp3",
-                "C4": "C4.mp3"
-            },
-            release: 1,
+            urls: { "C4": "C4.mp3", "A3": "A3.mp3", "F3": "F3.mp3" },
             baseUrl: "https://tonejs.github.io/audio/salamander/",
-            onload: () => {
-                btn.innerText = "Lancer l'expérience";
-            }
+            onload: () => { btn.innerText = "ENTRER DANS L'ÉCOUTE"; }
         }).toDestination();
 
-        // Effet de flou artistique (Léger)
+        // On garde le filtre pour le côté feutré
         const filter = new Tone.Filter(400, "lowpass").toDestination();
         sampler.connect(filter);
 
-        const notes = ["C2", "E2", "G2", "B2", "C3", "E3", "G3", "B3"];
+        // --- LE CERVEAU ---
+        const scale = ["C3", "D3", "E3", "G3", "A3", "C4", "D4", "E4", "G4"];
+        let currentIndex = 4; // On commence au milieu
+        let stepCount = 0;
 
         const loop = new Tone.Loop((time) => {
-            // Un flux plus dense (70% de chance de jouer)
-            if (Math.random() > 0.3) {
-                const n = notes[Math.floor(Math.random() * notes.length)];
-                // On joue la note avec une vélocité aléatoire pour faire "humain"
-                sampler.triggerAttackRelease(n, "2n", time, Math.random() * 0.4 + 0.2);
+            stepCount++;
+
+            // Règle 1 : On ne joue pas à chaque fois (silence respiratoire)
+            if (Math.random() > 0.4) {
+                
+                // Règle 2 : La Marche de l'Ivrogne (Note suivante = proche de l'actuelle)
+                const move = Math.floor(Math.random() * 3) - 1; // -1, 0, ou 1
+                currentIndex = Math.max(0, Math.min(scale.length - 1, currentIndex + move));
+                
+                const note = scale[currentIndex];
+                
+                // Règle 3 : Vélocité (force) humaine
+                const velocity = Math.random() * 0.3 + 0.1;
+                
+                // On joue la note
+                sampler.triggerAttackRelease(note, "1n", time, velocity);
+
+                // Règle 4 : De temps en temps, une petite note d'accompagnement (Harmonie)
+                if (stepCount % 4 === 0) {
+                    sampler.triggerAttackRelease(scale[0], "1n", time, 0.1);
+                }
             }
-        }, "4n"); // Rythme plus soutenu pour éviter les "0 0 0"
+        }, "4n");
 
         btn.addEventListener('click', async () => {
             if (!isPlaying) {
                 await Tone.start();
                 Tone.Transport.start();
                 loop.start(0);
-                btn.innerText = "ARRÊTER";
+                btn.innerText = "SILENCE";
                 isPlaying = true;
             } else {
                 Tone.Transport.stop();
                 loop.stop();
-                btn.innerText = "Lancer l'expérience";
+                btn.innerText = "ENTRER DANS L'ÉCOUTE";
                 isPlaying = false;
             }
         });
