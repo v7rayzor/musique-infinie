@@ -7,7 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         body { background: #1a1a1a; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        #mainBtn { padding: 15px 40px; font-size: 18px; border-radius: 50px; border: none; background: #4CAF50; color: white; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        #mainBtn { padding: 15px 40px; font-size: 18px; border-radius: 50px; border: none; background: #4CAF50; color: white; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
     </style>
 </head>
 <body>
@@ -19,29 +19,35 @@
         const btn = document.getElementById('mainBtn');
         let isPlaying = false;
 
-        // OPTIMISATION MOBILE : On donne plus de temps au processeur (0.1s de marge)
-        Tone.context.lookAhead = 0.1;
+        // RÉGLAGES DE SÉCURITÉ MOBILE
+        Tone.context.lookAhead = 0.3; // On donne encore plus de marge
+        Tone.context.latencyHint = "playback";
 
-        // Instrument très léger pour processeur mobile
+        // Instrument optimisé
         const piano = new Tone.PolySynth(Tone.Synth, {
             oscillator: { type: "sine" },
-            envelope: { attack: 2, decay: 2, sustain: 0.4, release: 8 }
+            envelope: { attack: 2, decay: 2, sustain: 0.3, release: 6 }
         }).toDestination();
 
-        // Effets simplifiés (moins de craquements)
-        const lowpass = new Tone.Filter(350, "lowpass").toDestination();
-        const reverb = new Tone.Reverb({ decay: 8, wet: 0.4 }).toDestination();
+        // REMPLACEMENT DE LA REVERB PAR UN DELAY LÉGER (Anti-scratch)
+        const delay = new Tone.FeedbackDelay({
+            delayTime: "2n",
+            feedback: 0.5,
+            wet: 0.3
+        }).toDestination();
+
+        const lowpass = new Tone.Filter(300, "lowpass").toDestination();
         
         piano.connect(lowpass);
-        lowpass.connect(reverb);
-        piano.volume.value = -18;
+        lowpass.connect(delay);
+        piano.volume.value = -20;
 
         const notes = ["F2", "Ab2", "C3", "Eb3", "F3", "Ab3", "C4"];
 
         const loop = new Tone.Loop((time) => {
-            if (Math.random() > 0.15) {
+            if (Math.random() > 0.2) {
                 const n = notes[Math.floor(Math.random() * notes.length)];
-                piano.triggerAttackRelease(n, "2n", time);
+                piano.triggerAttackRelease(n, "1n", time);
             }
         }, "2n");
 
