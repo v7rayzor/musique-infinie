@@ -3,57 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V1.1 - EVOLUTION</title>
+    <title>V1.2 - IMMERSION</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        body { background: #000; color: #ecf0f1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: serif; }
-        #mainBtn { padding: 15px 40px; border: 1px solid #ecf0f1; background: transparent; color: #ecf0f1; cursor: pointer; transition: 0.5s; }
-        #mainBtn:hover { background: #ecf0f1; color: #000; }
-        h1 { font-weight: 200; letter-spacing: 4px; font-style: italic; color: #7f8c8d; }
+        body { background: #1c1c1c; color: #f3f3f3; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Helvetica', sans-serif; }
+        #mainBtn { width: 120px; height: 120px; border-radius: 50%; border: 1px solid #f3f3f3; background: transparent; color: #f3f3f3; cursor: pointer; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; }
+        h1 { font-weight: 100; margin-bottom: 40px; letter-spacing: 10px; }
     </style>
 </head>
 <body>
 
-    <h1>V1.1 • Murmure</h1>
-    <button id="mainBtn">CHARGEMENT...</button>
+    <h1>V1.2</h1>
+    <button id="mainBtn">Start</button>
 
     <script>
         const btn = document.getElementById('mainBtn');
         let isPlaying = false;
 
-        // Sampler avec un Release très long pour le coté "Nuage"
+        // 1. LE PIANO (Base V1.1)
         const sampler = new Tone.Sampler({
-            urls: { "C4": "C4.mp3", "A3": "A3.mp3", "F3": "F3.mp3" },
+            urls: { "C4": "C4.mp3", "A3": "A3.mp3" },
             baseUrl: "https://tonejs.github.io/audio/salamander/",
-            onload: () => { btn.innerText = "ECOUTER"; }
+            onload: () => { btn.innerText = "Play"; }
         }).toDestination();
+        const pFilter = new Tone.Filter(400, "lowpass").toDestination();
+        sampler.connect(pFilter);
+        sampler.volume.value = -10;
 
-        const filter = new Tone.Filter(350, "lowpass").toDestination();
-        sampler.connect(filter);
+        // 2. LA NAPPE (Le nouvel instrument)
+        // Un synthé ultra simple qui fait un son de "vent" ou de "vibration"
+        const pad = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "sine" },
+            envelope: { attack: 4, release: 4 }
+        }).toDestination();
+        const padFilter = new Tone.Filter(200, "lowpass").toDestination();
+        pad.connect(padFilter);
+        pad.volume.value = -30; // Très discret, juste pour le fond
 
-        // Configuration de la marche (Base V8)
-        const scale = ["C3", "D3", "E3", "G3", "A3", "C4", "D4", "E4", "G4", "A4"];
-        let currentIndex = 5;
+        // Logique Piano
+        const scale = ["C3", "D3", "E3", "G3", "A3", "C4", "D4"];
+        let currentIndex = 3;
 
         const loop = new Tone.Loop((time) => {
-            // Règle de silence (on joue 60% du temps)
+            // Piano mélodie
             if (Math.random() > 0.4) {
-                
-                // Marche de l'ivrogne améliorée
                 const move = Math.floor(Math.random() * 3) - 1;
                 currentIndex = Math.max(0, Math.min(scale.length - 1, currentIndex + move));
-                
-                const note = scale[currentIndex];
-                const velocity = Math.random() * 0.2 + 0.1;
+                sampler.triggerAttackRelease(scale[currentIndex], "1n", time, Math.random() * 0.2 + 0.1);
+            }
 
-                // On joue la note avec une durée très longue ("1n") pour le sustain
-                sampler.triggerAttackRelease(note, "1n", time, velocity);
-
-                // Petite chance de jouer une "note fantôme" juste après (effet cascade)
-                if (Math.random() > 0.8) {
-                    const graceNote = scale[Math.max(0, currentIndex - 2)];
-                    sampler.triggerAttackRelease(graceNote, "1n", time + 0.2, 0.05);
-                }
+            // Changement de la nappe (toutes le 8 mesures environ)
+            if (Math.random() > 0.95) {
+                pad.releaseAll();
+                pad.triggerAttack(scale[0], time); // Joue la note de base très bas
             }
         }, "4n");
 
@@ -62,12 +64,15 @@
                 await Tone.start();
                 Tone.Transport.start();
                 loop.start(0);
-                btn.innerText = "PAUSE";
+                // On lance la nappe dès le début
+                pad.triggerAttack(scale[0]);
+                btn.innerText = "Stop";
                 isPlaying = true;
             } else {
                 Tone.Transport.stop();
                 loop.stop();
-                btn.innerText = "ECOUTER";
+                pad.releaseAll();
+                btn.innerText = "Play";
                 isPlaying = false;
             }
         });
