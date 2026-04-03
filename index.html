@@ -3,59 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V1.2 - IMMERSION</title>
+    <title>V1.3 - PROFONDEUR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        body { background: #1c1c1c; color: #f3f3f3; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Helvetica', sans-serif; }
-        #mainBtn { width: 120px; height: 120px; border-radius: 50%; border: 1px solid #f3f3f3; background: transparent; color: #f3f3f3; cursor: pointer; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; }
-        h1 { font-weight: 100; margin-bottom: 40px; letter-spacing: 10px; }
+        body { background: #203140; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        #mainBtn { padding: 20px 40px; border-radius: 15px; border: 2px solid #fff; background: transparent; color: #fff; cursor: pointer; font-weight: bold; }
+        h1 { font-weight: 100; margin-bottom: 30px; letter-spacing: 5px; }
     </style>
 </head>
 <body>
 
-    <h1>V1.2</h1>
-    <button id="mainBtn">Start</button>
+    <h1>V1.3 PROFONDEUR</h1>
+    <button id="mainBtn">CHARGEMENT</button>
 
     <script>
         const btn = document.getElementById('mainBtn');
         let isPlaying = false;
 
-        // 1. LE PIANO (Base V1.1)
-        const sampler = new Tone.Sampler({
+        // 1. PIANO (On remonte le volume)
+        const piano = new Tone.Sampler({
             urls: { "C4": "C4.mp3", "A3": "A3.mp3" },
             baseUrl: "https://tonejs.github.io/audio/salamander/",
-            onload: () => { btn.innerText = "Play"; }
+            onload: () => { btn.innerText = "LANCER L'IMMERSION"; }
         }).toDestination();
-        const pFilter = new Tone.Filter(400, "lowpass").toDestination();
-        sampler.connect(pFilter);
-        sampler.volume.value = -10;
+        piano.volume.value = -5; // Plus présent
 
-        // 2. LA NAPPE (Le nouvel instrument)
-        // Un synthé ultra simple qui fait un son de "vent" ou de "vibration"
-        const pad = new Tone.PolySynth(Tone.Synth, {
-            oscillator: { type: "sine" },
-            envelope: { attack: 4, release: 4 }
+        // 2. VIOLONCELLE (Synthétique mais riche)
+        const cello = new Tone.MonoSynth({
+            oscillator: { type: "sawtooth" }, // Son plus riche que la nappe
+            envelope: { attack: 2, release: 3 }
         }).toDestination();
-        const padFilter = new Tone.Filter(200, "lowpass").toDestination();
-        pad.connect(padFilter);
-        pad.volume.value = -30; // Très discret, juste pour le fond
+        const cFilter = new Tone.Filter(150, "lowpass").toDestination(); // Très sourd pour faire "basse"
+        cello.connect(cFilter);
+        cello.volume.value = -20;
 
-        // Logique Piano
-        const scale = ["C3", "D3", "E3", "G3", "A3", "C4", "D4"];
+        const scale = ["C3", "D3", "E3", "G3", "A3", "C4"];
         let currentIndex = 3;
+        let step = 0;
 
         const loop = new Tone.Loop((time) => {
-            // Piano mélodie
+            step++;
+
+            // PIANO : Toujours la marche de l'ivrogne
             if (Math.random() > 0.4) {
                 const move = Math.floor(Math.random() * 3) - 1;
                 currentIndex = Math.max(0, Math.min(scale.length - 1, currentIndex + move));
-                sampler.triggerAttackRelease(scale[currentIndex], "1n", time, Math.random() * 0.2 + 0.1);
+                piano.triggerAttackRelease(scale[currentIndex], "1n", time, 0.3);
             }
 
-            // Changement de la nappe (toutes le 8 mesures environ)
-            if (Math.random() > 0.95) {
-                pad.releaseAll();
-                pad.triggerAttack(scale[0], time); // Joue la note de base très bas
+            // VIOLONCELLE : Joue une basse toutes les 8 pulsations
+            if (step % 8 === 0) {
+                cello.triggerAttackRelease("C2", "2n", time, 0.2);
             }
         }, "4n");
 
@@ -64,15 +62,12 @@
                 await Tone.start();
                 Tone.Transport.start();
                 loop.start(0);
-                // On lance la nappe dès le début
-                pad.triggerAttack(scale[0]);
-                btn.innerText = "Stop";
+                btn.innerText = "STOP";
                 isPlaying = true;
             } else {
                 Tone.Transport.stop();
                 loop.stop();
-                pad.releaseAll();
-                btn.innerText = "Play";
+                btn.innerText = "LANCER L'IMMERSION";
                 isPlaying = false;
             }
         });
