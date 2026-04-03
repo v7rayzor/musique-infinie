@@ -3,61 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V6 FLASH</title>
+    <title>V7 - PIANO RÉEL</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        /* FOND FLASHY : IMPOSSIBLE À RATER */
-        body { background: #d35400; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        #mainBtn { padding: 20px 50px; font-size: 20px; border-radius: 10px; border: 3px solid white; background: transparent; color: white; font-weight: bold; }
+        body { background: #4a0e0e; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Georgia', serif; }
+        #mainBtn { padding: 20px 50px; font-size: 18px; border-radius: 5px; border: 2px solid white; background: transparent; color: white; cursor: pointer; }
+        h1 { font-weight: 300; font-style: italic; }
     </style>
 </head>
 <body>
 
-    <h1 style="font-size: 40px;">V6 - FLASH</h1>
-    <button id="mainBtn">TESTER LE SON</button>
+    <h1>V7 - Piano Immersif</h1>
+    <button id="mainBtn">CHARGEMENT...</button>
 
     <script>
         const btn = document.getElementById('mainBtn');
         let isPlaying = false;
 
-        Tone.context.lookAhead = 0.6;
-
-        // Limiter à 3 voix maximum pour soulager le téléphone
-        const piano = new Tone.PolySynth(Tone.Synth, {
-            maxPolyphony: 3, 
-            oscillator: { type: "sine" },
-            envelope: { attack: 2, decay: 1, sustain: 0.5, release: 4 }
+        // Échantillons de piano haute qualité (Salami Piano)
+        const sampler = new Tone.Sampler({
+            urls: {
+                "A0": "A0.mp3",
+                "C1": "C1.mp3",
+                "A1": "A1.mp3",
+                "C2": "C2.mp3",
+                "A2": "A2.mp3",
+                "C3": "C3.mp3",
+                "A3": "A3.mp3",
+                "C4": "C4.mp3"
+            },
+            release: 1,
+            baseUrl: "https://tonejs.github.io/audio/salamander/",
+            onload: () => {
+                btn.innerText = "Lancer l'expérience";
+            }
         }).toDestination();
 
-        // Echo ultra simplifié
-        const delay = new Tone.FeedbackDelay("4n", 0.3).toDestination();
+        // Effet de flou artistique (Léger)
         const filter = new Tone.Filter(400, "lowpass").toDestination();
-        
-        piano.connect(filter);
-        filter.connect(delay);
-        piano.volume.value = -15;
+        sampler.connect(filter);
 
-        const notes = ["F2", "Ab2", "C3", "Eb3", "F3", "Ab3"];
+        const notes = ["C2", "E2", "G2", "B2", "C3", "E3", "G3", "B3"];
 
         const loop = new Tone.Loop((time) => {
+            // Un flux plus dense (70% de chance de jouer)
             if (Math.random() > 0.3) {
                 const n = notes[Math.floor(Math.random() * notes.length)];
-                piano.triggerAttackRelease(n, "2n", time);
+                // On joue la note avec une vélocité aléatoire pour faire "humain"
+                sampler.triggerAttackRelease(n, "2n", time, Math.random() * 0.4 + 0.2);
             }
-        }, "1n"); // On ralentit le rythme pour laisser respirer le CPU
+        }, "4n"); // Rythme plus soutenu pour éviter les "0 0 0"
 
         btn.addEventListener('click', async () => {
             if (!isPlaying) {
                 await Tone.start();
                 Tone.Transport.start();
                 loop.start(0);
-                btn.innerText = "STOP";
+                btn.innerText = "ARRÊTER";
                 isPlaying = true;
             } else {
                 Tone.Transport.stop();
                 loop.stop();
-                piano.releaseAll();
-                btn.innerText = "TESTER LE SON";
+                btn.innerText = "Lancer l'expérience";
                 isPlaying = false;
             }
         });
