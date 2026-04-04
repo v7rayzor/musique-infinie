@@ -3,139 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V3.6 - ORCHESTRE D'OR</title>
+    <title>V3.7 - LES DEUX MONDES</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        body { 
-            background: #000; 
-            color: #d4af37; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh; 
-            margin: 0; 
-            font-family: 'Playfair Display', serif; 
-        }
-        #mainBtn { 
-            width: 220px; 
-            height: 220px; 
-            border: 2px solid #d4af37; 
-            border-radius: 50%; 
-            background: transparent; 
-            color: #d4af37; 
-            cursor: pointer; 
-            font-size: 18px; 
-            letter-spacing: 6px; 
-            text-transform: uppercase; 
-            transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
-        }
-        #mainBtn.active { 
-            background: #d4af37; 
-            color: #000; 
-            box-shadow: 0 0 50px rgba(212, 175, 55, 0.3);
-            transform: scale(1.05);
-        }
-        .status { 
-            margin-top: 30px; 
-            font-size: 12px; 
-            letter-spacing: 3px; 
-            opacity: 0.5; 
-            font-style: italic;
-        }
-        /* Animation de respiration */
-        @keyframes pulse {
-            0% { opacity: 0.3; }
-            50% { opacity: 0.8; }
-            100% { opacity: 0.3; }
-        }
-        .breathing { animation: pulse 4s infinite ease-in-out; }
+        body { background: #000; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Playfair Display', serif; transition: 1s; }
+        #mainBtn { width: 200px; height: 200px; border: 2px solid; border-radius: 50%; background: transparent; cursor: pointer; font-size: 16px; letter-spacing: 4px; text-transform: uppercase; transition: all 1s; }
+        
+        /* Thème 1 : Or */
+        body.theme1 { background: #050400; color: #d4af37; }
+        body.theme1 #mainBtn { border-color: #d4af37; color: #d4af37; }
+        body.theme1 #mainBtn.active { background: #d4af37; color: #000; box-shadow: 0 0 40px rgba(212, 175, 55, 0.3); }
+
+        /* Thème 2 : Émeraude */
+        body.theme2 { background: #000805; color: #2ecc71; }
+        body.theme2 #mainBtn { border-color: #2ecc71; color: #2ecc71; }
+        body.theme2 #mainBtn.active { background: #2ecc71; color: #000; box-shadow: 0 0 40px rgba(46, 204, 113, 0.3); }
+
+        .selector { margin-top: 40px; display: flex; gap: 20px; }
+        .sel-btn { background: transparent; border: 1px solid #333; color: #444; padding: 10px 20px; cursor: pointer; border-radius: 5px; font-size: 10px; transition: 0.3s; }
+        .sel-btn.active { border-color: currentColor; color: currentColor; }
     </style>
 </head>
-<body>
+<body class="theme1">
 
     <button id="mainBtn">ÉVEILLER</button>
-    <div class="status breathing">V3.6 — SYMPHONIE PRIVÉE</div>
+    
+    <div class="selector">
+        <button class="sel-btn active" onclick="setTheme(1)">THÈME I : OR</button>
+        <button class="sel-btn" onclick="setTheme(2)">THÈME II : FORÊT</button>
+    </div>
 
     <script>
-        // 1. PROTECTION AUDIO (Anti-Scratch Master)
-        const limiter = new Tone.Limiter(-1).toDestination();
-        const mainFilter = new Tone.Filter(40, "highpass").connect(limiter);
-        Tone.context.lookahead = 0.15; // Buffer encore plus large pour la stabilité
-
-        const btn = document.getElementById('mainBtn');
+        let currentTheme = 1;
         let isPlaying = false;
+        const limiter = new Tone.Limiter(-1).toDestination();
+        Tone.context.lookahead = 0.15;
 
-        // 2. LES INSTRUMENTS (Âme de la V3.3)
+        // --- INSTRUMENTS THÈME 1 (L'Orchestre d'Or) ---
         const piano = new Tone.Sampler({
             urls: { "C4": "C4.mp3", "A3": "A3.mp3" },
             baseUrl: "https://tonejs.github.io/audio/salamander/",
-        }).connect(mainFilter);
-        piano.volume.value = -10;
-
-        const harp = new Tone.PolySynth(Tone.Synth, {
-            oscillator: { type: "sine" },
-            envelope: { attack: 0.3, decay: 1.2, sustain: 0, release: 4 }
-        }).connect(mainFilter);
-        const hDelay = new Tone.PingPongDelay("4n", 0.15).connect(mainFilter);
-        harp.connect(hDelay);
-        harp.volume.value = -32;
-
-        const strings = new Tone.PolySynth(Tone.Synth, {
-            oscillator: { type: "triangle" },
-            envelope: { attack: 6, release: 10 }
-        }).connect(mainFilter);
-        const sFilter = new Tone.Filter(130, "lowpass").connect(mainFilter);
+        }).connect(limiter);
+        
+        const strings = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "triangle" }, envelope: { attack: 6, release: 10 } }).connect(limiter);
+        const sFilter = new Tone.Filter(130, "lowpass").connect(limiter);
         strings.connect(sFilter);
-        strings.volume.value = -38;
 
-        const progression = [
-            ["F2", "A3", "C4", "E4", "G4"],
-            ["D2", "F3", "A3", "C4", "F4"],
-            ["Bb1", "D3", "F3", "A3", "D4"]
+        // --- INSTRUMENTS THÈME 2 (La Forêt de Verre) ---
+        const marimba = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "sine" },
+            envelope: { attack: 0.01, decay: 0.4, sustain: 0, release: 1 }
+        }).connect(limiter);
+        
+        const cello = new Tone.MonoSynth({
+            oscillator: { type: "sawtooth" },
+            envelope: { attack: 4, release: 6 }
+        }).connect(new Tone.Filter(100, "lowpass").connect(limiter));
+
+        // LOGIQUE COMMUNE
+        const chords = [
+            ["F2", "A3", "C4", "E4"],
+            ["D2", "F3", "A3", "C4"],
+            ["Bb1", "D3", "F3", "A3"]
         ];
         let currentIdx = 0;
         let step = 0;
 
         const loop = new Tone.Loop((time) => {
             step++;
-            if (step % 32 === 1) {
-                currentIdx = (currentIdx + 1) % progression.length;
-                strings.releaseAll();
-                strings.triggerAttack([progression[currentIdx][1], progression[currentIdx][2]], time);
-            }
-            const activeChord = progression[currentIdx];
+            if (step % 32 === 1) currentIdx = (currentIdx + 1) % chords.length;
+            const activeChord = chords[currentIdx];
             const jitter = Math.random() * 0.06;
 
-            if (Math.random() > 0.52) {
-                const note = activeChord[Math.floor(Math.random() * 2) + 2];
-                const velocity = Math.random() * 0.07 + 0.02;
-                piano.triggerAttackRelease(note, "1n", time + jitter, velocity);
-            }
-
-            if (Math.random() > 0.75) {
-                const hNote = activeChord[Math.floor(Math.random() * 2) + 3];
-                const hVelocity = Math.random() * 0.03 + 0.01;
-                harp.triggerAttackRelease(hNote, "2n", time + 0.25 + jitter, hVelocity);
+            if (currentTheme === 1) {
+                // LOGIQUE ORCHESTRE OR
+                if (step % 32 === 1) {
+                    strings.releaseAll();
+                    strings.triggerAttack([activeChord[1], activeChord[2]], time);
+                }
+                if (Math.random() > 0.5) {
+                    piano.triggerAttackRelease(activeChord[2], "1n", time + jitter, Math.random() * 0.07 + 0.02);
+                }
+            } else {
+                // LOGIQUE FORÊT DE VERRE
+                if (step % 32 === 1) {
+                    cello.triggerAttackRelease(activeChord[0], "1n", time);
+                }
+                // Marimba "Gouttes d'eau"
+                if (Math.random() > 0.4) {
+                    const mNote = activeChord[Math.floor(Math.random() * 3) + 1];
+                    marimba.triggerAttackRelease(mNote, "8n", time + jitter, Math.random() * 0.1 + 0.05);
+                }
             }
         }, "4n");
 
-        btn.addEventListener('click', async () => {
+        function setTheme(t) {
+            currentTheme = t;
+            document.body.className = 'theme' + t;
+            document.querySelectorAll('.sel-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === t));
+            if (isPlaying) {
+                strings.releaseAll();
+                cello.triggerRelease();
+            }
+        }
+
+        document.getElementById('mainBtn').addEventListener('click', async () => {
             if (!isPlaying) {
                 await Tone.start();
                 Tone.Transport.start();
                 loop.start(0);
-                btn.innerText = "DANS LE FLUX";
-                btn.classList.add('active');
                 isPlaying = true;
+                document.getElementById('mainBtn').classList.add('active');
+                document.getElementById('mainBtn').innerText = "DANS LE FLUX";
             } else {
                 Tone.Transport.stop();
                 loop.stop();
                 strings.releaseAll();
-                btn.innerText = "ÉVEILLER";
-                btn.classList.remove('active');
+                cello.triggerRelease();
                 isPlaying = false;
+                document.getElementById('mainBtn').classList.remove('active');
+                document.getElementById('mainBtn').innerText = "ÉVEILLER";
             }
         });
     </script>
