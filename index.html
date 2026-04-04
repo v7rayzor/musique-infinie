@@ -3,32 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V3.3 - HUMAN TOUCH</title>
+    <title>V3.4 - NON-STOP</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        body { background: #efede0; color: #333; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Courier New', Courier, monospace; }
-        #mainBtn { padding: 25px 60px; border: 2px solid #333; background: transparent; color: #333; cursor: pointer; font-size: 14px; letter-spacing: 5px; text-transform: uppercase; transition: 0.4s; box-shadow: 5px 5px 0px #333; }
-        #mainBtn:active { box-shadow: 0px 0px 0px #333; transform: translate(5px, 5px); }
-        h1 { font-weight: 900; margin-bottom: 40px; letter-spacing: 2px; opacity: 0.8; }
+        body { background: #050505; color: #444; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        #mainBtn { width: 200px; height: 200px; border: 1px solid #222; border-radius: 50%; background: transparent; color: #666; cursor: pointer; font-size: 12px; letter-spacing: 5px; text-transform: uppercase; transition: 0.5s; }
+        #mainBtn.active { border-color: #ee9b00; color: #ee9b00; box-shadow: 0 0 40px rgba(238, 155, 0, 0.1); }
+        p { margin-top: 20px; font-size: 10px; opacity: 0.5; text-align: center; line-height: 1.6; }
     </style>
 </head>
 <body>
 
-    <h1>V3.3 • ORCHESTRE ORGANIQUE</h1>
-    <button id="mainBtn">Vibrer</button>
+    <button id="mainBtn">Démarrer</button>
+    <p>V3.4 - ORCHESTRE HUMANISÉ<br>(Optimisé pour l'écoute écran éteint)</p>
 
     <script>
         const btn = document.getElementById('mainBtn');
         let isPlaying = false;
 
-        // 1. PIANO (Référence V2.4 + Humanizing)
+        // --- CONFIGURATION ORCHESTRE V3.3 (Ton 10/10) ---
         const piano = new Tone.Sampler({
             urls: { "C4": "C4.mp3", "A3": "A3.mp3" },
             baseUrl: "https://tonejs.github.io/audio/salamander/",
         }).toDestination();
         piano.volume.value = -8;
 
-        // 2. HARPE (Avec Delay spatial)
         const harp = new Tone.PolySynth(Tone.Synth, {
             oscillator: { type: "sine" },
             envelope: { attack: 0.2, decay: 1, sustain: 0, release: 3 }
@@ -37,7 +36,6 @@
         harp.connect(hDelay);
         harp.volume.value = -28;
 
-        // 3. CORDES & CELLO (Fondation)
         const strings = new Tone.PolySynth(Tone.Synth, {
             oscillator: { type: "triangle" },
             envelope: { attack: 5, release: 8 }
@@ -56,44 +54,49 @@
 
         const loop = new Tone.Loop((time) => {
             step++;
-
             if (step % 32 === 1) {
                 currentIdx = (currentIdx + 1) % progression.length;
                 strings.releaseAll();
                 strings.triggerAttack([progression[currentIdx][1], progression[currentIdx][2]], time);
             }
-
             const activeChord = progression[currentIdx];
-            const jitter = Math.random() * 0.05; // Le petit retard humain (0 à 50ms)
+            const jitter = Math.random() * 0.05;
 
-            // PIANO (Hasard de force et de temps)
             if (Math.random() > 0.5) {
                 const note = activeChord[Math.floor(Math.random() * 2) + 2];
-                const velocity = Math.random() * 0.1 + 0.02; // Touche plus ou moins forte
+                const velocity = Math.random() * 0.1 + 0.02;
                 piano.triggerAttackRelease(note, "1n", time + jitter, velocity);
             }
 
-            // HARPE (Arpège décalé)
             if (Math.random() > 0.7) {
                 const hNote = activeChord[Math.floor(Math.random() * 2) + 3];
                 const hVelocity = Math.random() * 0.05 + 0.01;
                 harp.triggerAttackRelease(hNote, "2n", time + 0.2 + jitter, hVelocity);
             }
-
         }, "4n");
 
+        // --- GESTION DU MODE ARRIÈRE-PLAN ---
         btn.addEventListener('click', async () => {
             if (!isPlaying) {
                 await Tone.start();
+                
+                // On crée un oscillateur inaudible pour "tromper" le navigateur
+                // et l'empêcher de couper le son en veille.
+                const nosleep = new Tone.Oscillator().toDestination();
+                nosleep.frequency.value = 0; // Fréquence 0 = Inaudible
+                nosleep.start();
+
                 Tone.Transport.start();
                 loop.start(0);
-                btn.innerText = "Silence";
+                btn.innerText = "En cours";
+                btn.classList.add('active');
                 isPlaying = true;
             } else {
                 Tone.Transport.stop();
                 loop.stop();
                 strings.releaseAll();
-                btn.innerText = "Vibrer";
+                btn.innerText = "Démarrer";
+                btn.classList.remove('active');
                 isPlaying = false;
             }
         });
