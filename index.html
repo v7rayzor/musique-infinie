@@ -11,23 +11,19 @@
         body { background: var(--v-fond); color: var(--v-accent); margin: 0; padding: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         .header-tag { padding: 15px; font-family: monospace; font-size: 10px; font-weight: bold; opacity: 0.6; }
         .container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        
-        #mainBtn { width: 120px; height: 120px; border: 2px solid var(--v-accent); border-radius: 50%; background: transparent; color: var(--v-accent); font-size: 12px; letter-spacing: 4px; font-weight: 700; margin-bottom: 30px; cursor: pointer; transition: 0.2s; }
+        #mainBtn { width: 120px; height: 120px; border: 2px solid var(--v-accent); border-radius: 50%; background: transparent; color: var(--v-accent); font-size: 12px; letter-spacing: 4px; font-weight: 700; margin-bottom: 30px; cursor: pointer; }
         #mainBtn.active { background: var(--v-accent); color: #fff; }
-
         .selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 320px; margin-bottom: 30px; }
         .sel-btn { background: #f8fbf9; border: 1px solid #eee; color: var(--v-soft); font-size: 16px; height: 55px; border-radius: 14px; cursor: pointer; }
         .sel-btn.active { color: var(--v-accent); border-color: var(--v-accent); font-weight: bold; background: #fff; }
-
         .auto-section { width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-        .toggle-container { width: 60px; height: 32px; background: #eee; border-radius: 20px; padding: 4px; cursor: pointer; position: relative; }
+        .toggle-container { width: 60px; height: 32px; background: #eee; border-radius: 20px; padding: 4px; cursor: pointer; transition: 0.3s; position: relative; }
         .toggle-container.on { background: var(--v-green); }
         .toggle-container.off { background: var(--v-red); }
-        .toggle-circle { width: 24px; height: 24px; background: white; border-radius: 50%; transition: 0.2s; position: absolute; top: 4px; }
+        .toggle-circle { width: 24px; height: 24px; background: white; border-radius: 50%; transition: 0.3s; position: absolute; }
         .toggle-container.on .toggle-circle { left: 32px; }
         .toggle-container.off .toggle-circle { left: 4px; }
-        
-        #themeName { font-size: 14px; color: var(--v-accent); margin-top: 5px; }
+        #themeName { font-size: 14px; font-weight: 400; color: var(--v-accent); margin-top: 5px; }
         #timerStatus { font-size: 9px; color: var(--v-soft); font-family: monospace; }
     </style>
 </head>
@@ -53,34 +49,29 @@
     </div>
 
     <script>
-        let isPlaying = false;
-        let isAuto = false;
-        let currentTheme = 1;
-        let audioTimer = null;
-        let themeStartTime = Date.now();
-        let autoCheckInterval = null;
+        let isPlaying = false, isAuto = false, currentTheme = 1;
+        let audioTimer = null, themeStartTime = Date.now(), autoCheckInterval = null;
         let themeHistory = [0,0,0,0,0,0,0,0];
 
-        // MASTER
-        const master = new Tone.Gain(0.9).toDestination();
+        // CONFIG AUDIO STABLE (Comme V7.3)
+        const master = new Tone.Gain(0.8).toDestination();
         const names = ["Orchestre Noble", "Onde Hertz", "Bois de Roseau", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
         const chords = [["F2", "A3", "C4"], ["D2", "F3", "A3"], ["Bb1", "D3", "F3"], ["G2", "Bb3", "D4"], ["C2", "E3", "G3"]];
 
-        // INSTRUMENTS
+        // INSTRUMENTS (Mélange V7.3 et V7.4 mais sans PolySynth pour éviter les bugs)
+        // J'utilise Tone.Synth (Monophonique) qui est l'objet le plus stable sur mobile.
         const synths = [
-            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"triangle"}, envelope:{attack:3, release:6}}).connect(master),
-            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"sine"}, envelope:{attack:5, release:8}}).connect(master),
-            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"triangle"}, envelope:{attack:4, release:4}}).connect(new Tone.Filter(150, "lowpass").connect(master)),
-            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"fatsine", count:2}, envelope:{attack:0.1, decay:0.8, sustain:0.1, release:3}}).connect(master),
-            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"fatpalsine", count:3}, envelope:{attack:6, release:8}}).connect(master),
-            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"sine"}, envelope:{attack:4, release:8}}).connect(master),
-            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"fatsine", count:2}, envelope:{attack:6, release:8}}).connect(master),
-            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"fatpalsine", count:3}, envelope:{attack:8, release:12}}).connect(new Tone.Filter(120, "lowpass").connect(master))
+            new Tone.Synth({oscillator:{type:"triangle"}, envelope:{attack:3, release:5}}).connect(master),
+            new Tone.Synth({oscillator:{type:"sine"}, envelope:{attack:5, release:5}}).connect(master),
+            new Tone.Synth({oscillator:{type:"sine"}, envelope:{attack:4, release:4}}).connect(new Tone.Filter(150, "lowpass").connect(master)),
+            new Tone.Synth({oscillator:{type:"fatsine", count:2}, envelope:{attack:0.1, decay:0.3, sustain:0.1, release:2}}).connect(master),
+            new Tone.Synth({oscillator:{type:"fatpalsine", count:2}, envelope:{attack:5, release:7}}).connect(master),
+            new Tone.Synth({oscillator:{type:"sine"}, envelope:{attack:4, release:8}}).connect(master),
+            new Tone.Synth({oscillator:{type:"fatsine", count:2}, envelope:{attack:6, release:8}}).connect(master),
+            new Tone.Synth({oscillator:{type:"fatpalsine", count:2}, envelope:{attack:8, release:10}}).connect(new Tone.Filter(100, "lowpass").connect(master))
         ];
 
-        synths[0].volume.value = -10; synths[1].volume.value = -11; synths[2].volume.value = -14;
-        synths[3].volume.value = -6;  synths[4].volume.value = -22; synths[5].volume.value = -16;
-        synths[6].volume.value = -20; synths[7].volume.value = -14;
+        synths.forEach((s, i) => s.volume.value = (i === 3) ? -2 : -10);
 
         function play() {
             if (!isPlaying) return;
@@ -88,35 +79,28 @@
             const s = synths[currentTheme - 1];
             const jitter = Math.random() * 0.5;
 
-            if (currentTheme === 4) {
-                s.triggerAttackRelease(chord[1], "2n", "+" + (0.5 + jitter));
-                s.triggerAttackRelease(chord[2], "2n", "+" + (1.2 + jitter));
-            } else {
-                s.triggerAttackRelease([chord[1], chord[2]], "1n", "+" + (0.5 + jitter));
-            }
-            audioTimer = setTimeout(play, 7000 + Math.random() * 7000);
+            // Une seule note à la fois pour la stabilité totale du CPU
+            s.triggerAttackRelease(chord[1], "2n", "+" + (0.5 + jitter));
+
+            audioTimer = setTimeout(play, 7500 + Math.random() * 7000);
         }
 
-        function togglePlay() {
+        // --- LOGIQUE DU BOUTON (COPIER-COLLER EXACT DE LA V7.3) ---
+        document.getElementById('mainBtn').onclick = async () => {
             if (!isPlaying) {
-                Tone.start().then(() => {
-                    isPlaying = true;
-                    play();
-                    updateUI();
-                });
+                await Tone.start();
+                isPlaying = true;
+                play();
+                document.getElementById('mainBtn').innerText = "STOP";
+                document.getElementById('mainBtn').classList.add("active");
             } else {
                 isPlaying = false;
                 if (audioTimer) clearTimeout(audioTimer);
-                synths.forEach(s => s.releaseAll());
-                updateUI();
+                synths.forEach(s => s.triggerRelease());
+                document.getElementById('mainBtn').innerText = "START";
+                document.getElementById('mainBtn').classList.remove("active");
             }
-        }
-
-        function updateUI() {
-            const btn = document.getElementById('mainBtn');
-            btn.innerText = isPlaying ? "STOP" : "START";
-            btn.classList.toggle("active", isPlaying);
-        }
+        };
 
         function manualChange(n) {
             currentTheme = n;
@@ -126,7 +110,6 @@
             document.getElementById('themeName').innerText = names[n-1];
             if (isPlaying) {
                 if (audioTimer) clearTimeout(audioTimer);
-                synths.forEach(s => s.releaseAll());
                 play();
             }
         }
@@ -138,7 +121,7 @@
                 themeStartTime = Date.now();
                 autoCheckInterval = setInterval(checkAutoChange, 30000);
             } else {
-                if (autoCheckInterval) clearInterval(autoCheckInterval);
+                clearInterval(autoCheckInterval);
                 document.getElementById('timerStatus').innerText = "STATUT: STABLE";
             }
         }
@@ -158,9 +141,6 @@
                 manualChange(nt);
             }
         }
-
-        // ÉCOUTEUR D'ÉVÉNEMENT DIRECT
-        document.getElementById('mainBtn').addEventListener('click', togglePlay);
     </script>
 </body>
 </html>
