@@ -53,38 +53,46 @@
         let audioTimer = null, themeStartTime = Date.now(), autoCheckInterval = null;
         let themeHistory = [0,0,0,0,0,0,0,0];
 
-        // GAIN RÉDUIT POUR ÉVITER LA SATURATION PHYSIQUE DES HP
-        const master = new Tone.Gain(0.8).toDestination();
+        const master = new Tone.Gain(1.0).toDestination();
         const names = ["Orchestre Noble", "Onde Hertz", "Bois de Roseau", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
-        const chords = [["F2", "A3"], ["D2", "F3"], ["Bb1", "D3"], ["G2", "Bb3"], ["C2", "E3"]];
+        const chords = [["F2", "A3", "C4"], ["D2", "F3", "A3"], ["Bb1", "D3", "F3"], ["G2", "Bb3", "D4"], ["C2", "E3", "G3"]];
 
-        // INSTRUMENTS MONOPHONIQUES (Extrêmement légers)
+        // SYNTHS AVEC TEXTURES "TRICHÉES" (Optimisées Mobile)
         const synths = [
-            new Tone.Synth({oscillator:{type:"triangle"}, envelope:{attack:3, release:5}}).connect(master),
-            new Tone.Synth({oscillator:{type:"sine"}, envelope:{attack:5, release:5}}).connect(master),
-            new Tone.Synth({oscillator:{type:"sine"}, envelope:{attack:4, release:4}}).connect(master),
-            new Tone.Synth({oscillator:{type:"sine"}, envelope:{attack:0.01, decay:0.2, sustain:0, release:0.5}}).connect(master),
-            new Tone.Synth({oscillator:{type:"triangle"}, envelope:{attack:5, release:7}}).connect(master),
-            new Tone.Synth({oscillator:{type:"sine"}, envelope:{attack:4, release:8}}).connect(master),
-            new Tone.Synth({oscillator:{type:"sine"}, envelope:{attack:6, release:8}}).connect(master),
-            new Tone.Synth({oscillator:{type:"triangle"}, envelope:{attack:8, release:10}}).connect(master)
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"triangle"}, envelope:{attack:3, release:6}}).connect(master),
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"sine"}, envelope:{attack:5, release:8}}).connect(master),
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"triangle"}, envelope:{attack:4, release:4}}).connect(new Tone.Filter(150, "lowpass").connect(master)),
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"fatsine", count:2, spread:10}, envelope:{attack:0.1, decay:0.8, sustain:0.1, release:3}}).connect(master),
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"fatpalsine", count:3, spread:20}, envelope:{attack:6, release:8}}).connect(master),
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"sine"}, envelope:{attack:4, release:8}}).connect(master),
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"fatsine", count:2}, envelope:{attack:6, release:8}}).connect(master),
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"fatpalsine", count:3, spread:30}, envelope:{attack:8, release:12}}).connect(new Tone.Filter(120, "lowpass").connect(master))
         ];
 
         // Calibration volumes
-        synths.forEach((s, i) => s.volume.value = (i === 3) ? -2 : -10);
+        synths[0].volume.value = -10; synths[1].volume.value = -11; synths[2].volume.value = -14;
+        synths[3].volume.value = -6;  synths[4].volume.value = -22; synths[5].volume.value = -16;
+        synths[6].volume.value = -20; synths[7].volume.value = -14;
 
         function play() {
             if (!isPlaying) return;
             const chord = chords[Math.floor(Math.random() * chords.length)];
             const s = synths[currentTheme - 1];
-            
-            // On ne joue qu'UNE note à la fois (chord[1])
             const jitter = Math.random() * 0.5;
-            s.triggerAttackRelease(chord[1], "1n", "+" + (0.5 + jitter));
+
+            // ON JOUE 2 NOTES POUR LE RELIEF (Limite de sécurité mobile)
+            if (currentTheme === 4) {
+                // Simulation d'écho par décalage temporel
+                s.triggerAttackRelease(chord[1], "2n", "+" + (0.5 + jitter));
+                s.triggerAttackRelease(chord[2], "2n", "+" + (1.2 + jitter));
+            } else {
+                s.triggerAttackRelease([chord[1], chord[2]], "1n", "+" + (0.5 + jitter));
+            }
 
             audioTimer = setTimeout(play, 7000 + Math.random() * 7000);
         }
 
+        // --- Logique Auto ---
         function checkAutoChange() {
             if (!isPlaying || !isAuto) return;
             const mins = (Date.now() - themeStartTime) / 60000;
@@ -122,7 +130,7 @@
                 document.getElementById('mainBtn').classList.add("active");
             } else {
                 isPlaying = false; if(audioTimer) clearTimeout(audioTimer);
-                synths.forEach(s => s.triggerRelease());
+                synths.forEach(s => s.releaseAll());
                 document.getElementById('mainBtn').innerText = "START";
                 document.getElementById('mainBtn').classList.remove("active");
             }
