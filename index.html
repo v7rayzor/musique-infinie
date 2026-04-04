@@ -3,30 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V3.4 - NON-STOP</title>
+    <title>V3.5 - PURITÉ</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        body { background: #050505; color: #444; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        #mainBtn { width: 200px; height: 200px; border: 1px solid #222; border-radius: 50%; background: transparent; color: #666; cursor: pointer; font-size: 12px; letter-spacing: 5px; text-transform: uppercase; transition: 0.5s; }
-        #mainBtn.active { border-color: #ee9b00; color: #ee9b00; box-shadow: 0 0 40px rgba(238, 155, 0, 0.1); }
-        p { margin-top: 20px; font-size: 10px; opacity: 0.5; text-align: center; line-height: 1.6; }
+        body { background: #000; color: #333; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
+        #mainBtn { width: 120px; height: 120px; border: 1px solid #111; border-radius: 50%; background: transparent; color: #222; cursor: pointer; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; transition: 0.8s; }
+        #mainBtn.active { border-color: #444; color: #888; box-shadow: 0 0 20px rgba(255,255,255,0.02); }
+        h1 { font-size: 10px; letter-spacing: 8px; color: #111; margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
-    <button id="mainBtn">Démarrer</button>
-    <p>V3.4 - ORCHESTRE HUMANISÉ<br>(Optimisé pour l'écoute écran éteint)</p>
+    <h1>V3.5 • SILENCE</h1>
+    <button id="mainBtn">START</button>
 
     <script>
+        // RÉGLAGE ANTI-SCRATCH (On donne de l'air au processeur)
+        Tone.context.lookahead = 0.1; 
+
         const btn = document.getElementById('mainBtn');
         let isPlaying = false;
 
-        // --- CONFIGURATION ORCHESTRE V3.3 (Ton 10/10) ---
+        // --- RETOUR AU SON 10/10 (V3.3) ---
         const piano = new Tone.Sampler({
             urls: { "C4": "C4.mp3", "A3": "A3.mp3" },
             baseUrl: "https://tonejs.github.io/audio/salamander/",
         }).toDestination();
-        piano.volume.value = -8;
+        piano.volume.value = -9;
 
         const harp = new Tone.PolySynth(Tone.Synth, {
             oscillator: { type: "sine" },
@@ -34,15 +37,15 @@
         }).toDestination();
         const hDelay = new Tone.PingPongDelay("4n", 0.2).toDestination();
         harp.connect(hDelay);
-        harp.volume.value = -28;
+        harp.volume.value = -30;
 
         const strings = new Tone.PolySynth(Tone.Synth, {
             oscillator: { type: "triangle" },
             envelope: { attack: 5, release: 8 }
         }).toDestination();
-        const sFilter = new Tone.Filter(180, "lowpass").toDestination();
+        const sFilter = new Tone.Filter(150, "lowpass").toDestination();
         strings.connect(sFilter);
-        strings.volume.value = -32;
+        strings.volume.value = -35;
 
         const progression = [
             ["F2", "A3", "C4", "E4", "G4"],
@@ -60,42 +63,35 @@
                 strings.triggerAttack([progression[currentIdx][1], progression[currentIdx][2]], time);
             }
             const activeChord = progression[currentIdx];
-            const jitter = Math.random() * 0.05;
+            const jitter = Math.random() * 0.04;
 
             if (Math.random() > 0.5) {
                 const note = activeChord[Math.floor(Math.random() * 2) + 2];
-                const velocity = Math.random() * 0.1 + 0.02;
+                const velocity = Math.random() * 0.08 + 0.02;
                 piano.triggerAttackRelease(note, "1n", time + jitter, velocity);
             }
 
             if (Math.random() > 0.7) {
                 const hNote = activeChord[Math.floor(Math.random() * 2) + 3];
-                const hVelocity = Math.random() * 0.05 + 0.01;
+                const hVelocity = Math.random() * 0.04 + 0.01;
                 harp.triggerAttackRelease(hNote, "2n", time + 0.2 + jitter, hVelocity);
             }
         }, "4n");
 
-        // --- GESTION DU MODE ARRIÈRE-PLAN ---
         btn.addEventListener('click', async () => {
             if (!isPlaying) {
                 await Tone.start();
-                
-                // On crée un oscillateur inaudible pour "tromper" le navigateur
-                // et l'empêcher de couper le son en veille.
-                const nosleep = new Tone.Oscillator().toDestination();
-                nosleep.frequency.value = 0; // Fréquence 0 = Inaudible
-                nosleep.start();
-
+                // Utilisation du Transport pour le mode arrière-plan propre
                 Tone.Transport.start();
                 loop.start(0);
-                btn.innerText = "En cours";
+                btn.innerText = "PLAYING";
                 btn.classList.add('active');
                 isPlaying = true;
             } else {
                 Tone.Transport.stop();
                 loop.stop();
                 strings.releaseAll();
-                btn.innerText = "Démarrer";
+                btn.innerText = "START";
                 btn.classList.remove('active');
                 isPlaying = false;
             }
