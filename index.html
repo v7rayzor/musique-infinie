@@ -2,129 +2,273 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V3.7 - LES DEUX MONDES</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>UG 67 - Cédric</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        body { background: #000; color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: 'Playfair Display', serif; transition: 1s; }
-        #mainBtn { width: 200px; height: 200px; border: 2px solid; border-radius: 50%; background: transparent; cursor: pointer; font-size: 16px; letter-spacing: 4px; text-transform: uppercase; transition: all 1s; }
+        :root { 
+            --v-fond: #ffffff; 
+            --v-accent: #2d4a3e; 
+            --v-soft: #a8b9ad; 
+            --v-red: #cc5a5a; 
+            --v-green: #4caf50; 
+        }
         
-        /* Thème 1 : Or */
-        body.theme1 { background: #050400; color: #d4af37; }
-        body.theme1 #mainBtn { border-color: #d4af37; color: #d4af37; }
-        body.theme1 #mainBtn.active { background: #d4af37; color: #000; box-shadow: 0 0 40px rgba(212, 175, 55, 0.3); }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 
-        /* Thème 2 : Émeraude */
-        body.theme2 { background: #000805; color: #2ecc71; }
-        body.theme2 #mainBtn { border-color: #2ecc71; color: #2ecc71; }
-        body.theme2 #mainBtn.active { background: #2ecc71; color: #000; box-shadow: 0 0 40px rgba(46, 204, 113, 0.3); }
+        body { 
+            background: var(--v-fond); 
+            color: var(--v-accent); 
+            margin: 0; 
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
 
-        .selector { margin-top: 40px; display: flex; gap: 20px; }
-        .sel-btn { background: transparent; border: 1px solid #333; color: #444; padding: 10px 20px; cursor: pointer; border-radius: 5px; font-size: 10px; transition: 0.3s; }
-        .sel-btn.active { border-color: currentColor; color: currentColor; }
+        /* Signature UG 67 */
+        .header-tag {
+            padding: 15px;
+            font-family: "Courier New", monospace;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            text-transform: uppercase;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Bouton Principal Mobile */
+        #mainBtn { 
+            width: 130px; 
+            height: 130px; 
+            border: 2px solid var(--v-accent); 
+            border-radius: 50%; 
+            background: transparent; 
+            color: var(--v-accent); 
+            font-size: 12px; 
+            letter-spacing: 4px; 
+            text-transform: uppercase; 
+            font-weight: 700; 
+            margin-bottom: 40px;
+            transition: transform 0.1s, background 0.3s;
+        }
+        #mainBtn:active { transform: scale(0.95); }
+        #mainBtn.active { background: var(--v-accent); color: #fff; }
+
+        /* Grille Responsive */
+        .selector { 
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            width: 100%;
+            max-width: 320px;
+            margin-bottom: 40px;
+        }
+        .sel-btn { 
+            background: #f8fbf9; 
+            border: 1px solid #eee; 
+            color: var(--v-soft); 
+            font-size: 16px; 
+            height: 60px; 
+            border-radius: 16px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sel-btn.active { 
+            color: var(--v-accent); 
+            border-color: var(--v-accent); 
+            font-weight: bold; 
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        /* Mode Automatique */
+        .auto-section {
+            width: 100%;
+            max-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .auto-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--v-soft); }
+        
+        .toggle-container {
+            width: 70px;
+            height: 36px;
+            background: #eee;
+            border-radius: 20px;
+            padding: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .toggle-container.on { background: var(--v-green); }
+        .toggle-container.off { background: var(--v-red); }
+        
+        .toggle-circle {
+            width: 28px;
+            height: 28px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+            transform: translateX(0);
+        }
+        .toggle-container.on .toggle-circle { transform: translateX(34px); }
+
+        #themeName { font-size: 15px; font-weight: 400; color: var(--v-accent); margin-top: 10px; }
+        #timerStatus { font-size: 10px; color: var(--v-soft); margin-top: 5px; font-family: monospace; }
     </style>
 </head>
-<body class="theme1">
+<body>
 
-    <button id="mainBtn">ÉVEILLER</button>
-    
-    <div class="selector">
-        <button class="sel-btn active" onclick="setTheme(1)">THÈME I : OR</button>
-        <button class="sel-btn" onclick="setTheme(2)">THÈME II : FORÊT</button>
+    <div class="header-tag">UG 67 - Cédric</div>
+
+    <div class="container">
+        <button id="mainBtn">START</button>
+        
+        <div class="selector">
+            <button class="sel-btn active" id="b1" onclick="manualChange(1)">I</button>
+            <button class="sel-btn" id="b2" onclick="manualChange(2)">II</button>
+            <button class="sel-btn" id="b3" onclick="manualChange(3)">III</button>
+            <button class="sel-btn" id="b4" onclick="manualChange(4)">IV</button>
+            <button class="sel-btn" id="b5" onclick="manualChange(5)">V</button>
+            <button class="sel-btn" id="b6" onclick="manualChange(6)">VI</button>
+            <button class="sel-btn" id="b7" onclick="manualChange(7)">VII</button>
+            <button class="sel-btn" id="b8" onclick="manualChange(8)">VIII</button>
+        </div>
+
+        <div class="auto-section">
+            <span class="auto-label">Automatique</span>
+            <div id="autoToggle" class="toggle-container off" onclick="toggleAuto()">
+                <div class="toggle-circle"></div>
+            </div>
+            <div id="themeName">Orchestre Noble</div>
+            <div id="timerStatus">STATUT: STABLE</div>
+        </div>
     </div>
 
     <script>
-        let currentTheme = 1;
-        let isPlaying = false;
-        const limiter = new Tone.Limiter(-1).toDestination();
-        Tone.context.lookahead = 0.15;
+        let isPlaying = false, isAuto = false, currentTheme = 1;
+        let audioTimer = null, themeStartTime = Date.now(), autoCheckInterval = null;
+        let themeHistory = [0, 0, 0, 0, 0, 0, 0, 0];
 
-        // --- INSTRUMENTS THÈME 1 (L'Orchestre d'Or) ---
-        const piano = new Tone.Sampler({
-            urls: { "C4": "C4.mp3", "A3": "A3.mp3" },
-            baseUrl: "https://tonejs.github.io/audio/salamander/",
-        }).connect(limiter);
-        
-        const strings = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "triangle" }, envelope: { attack: 6, release: 10 } }).connect(limiter);
-        const sFilter = new Tone.Filter(130, "lowpass").connect(limiter);
-        strings.connect(sFilter);
+        const master = new Tone.Gain(2.0).toDestination();
+        const names = ["Orchestre Noble", "Onde Hertz", "Bois de Roseau", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
+        const chords = [["F2", "A3", "C4"], ["D2", "F3", "A3"], ["Bb1", "D3", "F3"], ["G2", "Bb3", "D4"], ["C2", "E3", "G3"]];
 
-        // --- INSTRUMENTS THÈME 2 (La Forêt de Verre) ---
-        const marimba = new Tone.PolySynth(Tone.Synth, {
-            oscillator: { type: "sine" },
-            envelope: { attack: 0.01, decay: 0.4, sustain: 0, release: 1 }
-        }).connect(limiter);
-        
-        const cello = new Tone.MonoSynth({
-            oscillator: { type: "sawtooth" },
-            envelope: { attack: 4, release: 6 }
-        }).connect(new Tone.Filter(100, "lowpass").connect(limiter));
-
-        // LOGIQUE COMMUNE
-        const chords = [
-            ["F2", "A3", "C4", "E4"],
-            ["D2", "F3", "A3", "C4"],
-            ["Bb1", "D3", "F3", "A3"]
+        // Instruments configurés comme V7.0
+        const synths = [
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"triangle"}, envelope:{attack:4, release:8}}).connect(new Tone.Filter(130,"lowpass").connect(master)),
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"sine"}, envelope:{attack:10, release:12}}).connect(new Tone.AutoPanner("0.05Hz").connect(master).start()),
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"square"}, envelope:{attack:6, release:10}}).connect(new Tone.Filter(100,"lowpass").connect(master)),
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"sine"}, envelope:{attack:0.5, decay:4, sustain:0, release:5}}).connect(new Tone.Reverb(12).connect(master)),
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"fatsawtooth", count:3}, envelope:{attack:8, release:10}}).connect(new Tone.Filter(200,"bandpass").connect(master)),
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"sine"}, envelope:{attack:6, release:12}}).connect(new Tone.Filter(350,"lowpass").connect(master)),
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"fatsine", count:3}, envelope:{attack:10, release:12}}).connect(new Tone.Filter(450,"bandpass").connect(master)),
+            new Tone.PolySynth(Tone.Synth, {oscillator:{type:"fatsawtooth", count:4}, envelope:{attack:12, release:15}}).connect(new Tone.Filter(115,"lowpass").connect(master))
         ];
-        let currentIdx = 0;
-        let step = 0;
+        const i4P = new Tone.Synth({oscillator:{type:"sine"}, envelope:{attack:10, release:10}}).connect(new Tone.Filter(80,"lowpass").connect(master));
+        
+        synths[0].volume.value = -10; synths[1].volume.value = -11; synths[2].volume.value = -13; 
+        synths[3].volume.value = -3; i4P.volume.value = -28; synths[4].volume.value = -28; 
+        synths[5].volume.value = -17; synths[6].volume.value = -19; synths[7].volume.value = -12;
 
-        const loop = new Tone.Loop((time) => {
-            step++;
-            if (step % 32 === 1) currentIdx = (currentIdx + 1) % chords.length;
-            const activeChord = chords[currentIdx];
-            const jitter = Math.random() * 0.06;
+        function play() {
+            if (!isPlaying) return;
+            const chord = chords[Math.floor(Math.random() * chords.length)];
+            synths.forEach(s => s.releaseAll());
+            i4P.triggerRelease();
 
-            if (currentTheme === 1) {
-                // LOGIQUE ORCHESTRE OR
-                if (step % 32 === 1) {
-                    strings.releaseAll();
-                    strings.triggerAttack([activeChord[1], activeChord[2]], time);
-                }
-                if (Math.random() > 0.5) {
-                    piano.triggerAttackRelease(activeChord[2], "1n", time + jitter, Math.random() * 0.07 + 0.02);
-                }
+            const s = synths[currentTheme - 1];
+            const jitter = Math.random() * 0.7;
+
+            if (currentTheme === 4) {
+                i4P.triggerAttack(chord[0], "+" + (0.1 + jitter));
+                s.triggerAttackRelease(chord[1], "2n", "+" + (0.5 + jitter));
+                s.triggerAttackRelease(chord[2], "2n", "+" + (4.0 + jitter));
+            } else if (currentTheme === 8) {
+                s.triggerAttack([chord[0], chord[1]], "+" + (0.5 + jitter));
             } else {
-                // LOGIQUE FORÊT DE VERRE
-                if (step % 32 === 1) {
-                    cello.triggerAttackRelease(activeChord[0], "1n", time);
-                }
-                // Marimba "Gouttes d'eau"
-                if (Math.random() > 0.4) {
-                    const mNote = activeChord[Math.floor(Math.random() * 3) + 1];
-                    marimba.triggerAttackRelease(mNote, "8n", time + jitter, Math.random() * 0.1 + 0.05);
-                }
+                s.triggerAttack([chord[1], chord[2]], "+" + (0.5 + jitter));
             }
-        }, "4n");
+            audioTimer = setTimeout(play, 6000 + Math.random() * 6000);
+        }
 
-        function setTheme(t) {
-            currentTheme = t;
-            document.body.className = 'theme' + t;
-            document.querySelectorAll('.sel-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === t));
-            if (isPlaying) {
-                strings.releaseAll();
-                cello.triggerRelease();
+        function checkAutoChange() {
+            if (!isPlaying || !isAuto) return;
+            const minutes = (Date.now() - themeStartTime) / 60000;
+            let chance = 0;
+            if (minutes >= 100) chance = 100;
+            else if (minutes >= 90) chance = 90;
+            else if (minutes >= 75) chance = 75;
+            else if (minutes >= 60) chance = 60;
+            else if (minutes >= 45) chance = 45;
+            else if (minutes >= 30) chance = 30;
+
+            document.getElementById('timerStatus').innerText = `AUTO: ${Math.floor(minutes)}M / CHANCE: ${chance}%`;
+
+            if (Math.random() * 100 < chance) {
+                let weights = themeHistory.map(h => 1 / (h + 1));
+                weights[currentTheme - 1] = 0;
+                let sum = weights.reduce((a, b) => a + b, 0);
+                let rand = Math.random() * sum, acc = 0, nextT = 1;
+                for (let i = 0; i < weights.length; i++) {
+                    acc += weights[i];
+                    if (rand <= acc) { nextT = i + 1; break; }
+                }
+                manualChange(nextT);
             }
         }
 
-        document.getElementById('mainBtn').addEventListener('click', async () => {
+        function toggleAuto() {
+            isAuto = !isAuto;
+            document.getElementById('autoToggle').className = isAuto ? 'toggle-container on' : 'toggle-container off';
+            if (isAuto) {
+                themeStartTime = Date.now();
+                autoCheckInterval = setInterval(checkAutoChange, 30000);
+            } else {
+                clearInterval(autoCheckInterval);
+                document.getElementById('timerStatus').innerText = "STATUT: STABLE";
+            }
+        }
+
+        function manualChange(n) {
+            currentTheme = n;
+            themeStartTime = Date.now();
+            themeHistory[n-1]++;
+            document.querySelectorAll('.sel-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === n));
+            document.getElementById('themeName').innerText = names[n - 1];
+            if (isPlaying) { if (audioTimer) clearTimeout(audioTimer); play(); }
+        }
+
+        document.getElementById('mainBtn').onclick = async () => {
             if (!isPlaying) {
                 await Tone.start();
-                Tone.Transport.start();
-                loop.start(0);
                 isPlaying = true;
-                document.getElementById('mainBtn').classList.add('active');
-                document.getElementById('mainBtn').innerText = "DANS LE FLUX";
+                play();
+                document.getElementById('mainBtn').innerText = "STOP";
+                document.getElementById('mainBtn').classList.add("active");
             } else {
-                Tone.Transport.stop();
-                loop.stop();
-                strings.releaseAll();
-                cello.triggerRelease();
                 isPlaying = false;
-                document.getElementById('mainBtn').classList.remove('active');
-                document.getElementById('mainBtn').innerText = "ÉVEILLER";
+                if (audioTimer) clearTimeout(audioTimer);
+                synths.forEach(s => s.releaseAll());
+                i4P.triggerRelease();
+                document.getElementById('mainBtn').innerText = "START";
+                document.getElementById('mainBtn').classList.remove("active");
             }
-        });
+        };
     </script>
 </body>
 </html>
