@@ -3,49 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V3.5 - PURITÉ</title>
+    <title>V3.6 - ORCHESTRE D'OR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        body { background: #000; color: #333; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        #mainBtn { width: 120px; height: 120px; border: 1px solid #111; border-radius: 50%; background: transparent; color: #222; cursor: pointer; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; transition: 0.8s; }
-        #mainBtn.active { border-color: #444; color: #888; box-shadow: 0 0 20px rgba(255,255,255,0.02); }
-        h1 { font-size: 10px; letter-spacing: 8px; color: #111; margin-bottom: 20px; }
+        body { 
+            background: #000; 
+            color: #d4af37; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
+            font-family: 'Playfair Display', serif; 
+        }
+        #mainBtn { 
+            width: 220px; 
+            height: 220px; 
+            border: 2px solid #d4af37; 
+            border-radius: 50%; 
+            background: transparent; 
+            color: #d4af37; 
+            cursor: pointer; 
+            font-size: 18px; 
+            letter-spacing: 6px; 
+            text-transform: uppercase; 
+            transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+        #mainBtn.active { 
+            background: #d4af37; 
+            color: #000; 
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.3);
+            transform: scale(1.05);
+        }
+        .status { 
+            margin-top: 30px; 
+            font-size: 12px; 
+            letter-spacing: 3px; 
+            opacity: 0.5; 
+            font-style: italic;
+        }
+        /* Animation de respiration */
+        @keyframes pulse {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0.3; }
+        }
+        .breathing { animation: pulse 4s infinite ease-in-out; }
     </style>
 </head>
 <body>
 
-    <h1>V3.5 • SILENCE</h1>
-    <button id="mainBtn">START</button>
+    <button id="mainBtn">ÉVEILLER</button>
+    <div class="status breathing">V3.6 — SYMPHONIE PRIVÉE</div>
 
     <script>
-        // RÉGLAGE ANTI-SCRATCH (On donne de l'air au processeur)
-        Tone.context.lookahead = 0.1; 
+        // 1. PROTECTION AUDIO (Anti-Scratch Master)
+        const limiter = new Tone.Limiter(-1).toDestination();
+        const mainFilter = new Tone.Filter(40, "highpass").connect(limiter);
+        Tone.context.lookahead = 0.15; // Buffer encore plus large pour la stabilité
 
         const btn = document.getElementById('mainBtn');
         let isPlaying = false;
 
-        // --- RETOUR AU SON 10/10 (V3.3) ---
+        // 2. LES INSTRUMENTS (Âme de la V3.3)
         const piano = new Tone.Sampler({
             urls: { "C4": "C4.mp3", "A3": "A3.mp3" },
             baseUrl: "https://tonejs.github.io/audio/salamander/",
-        }).toDestination();
-        piano.volume.value = -9;
+        }).connect(mainFilter);
+        piano.volume.value = -10;
 
         const harp = new Tone.PolySynth(Tone.Synth, {
             oscillator: { type: "sine" },
-            envelope: { attack: 0.2, decay: 1, sustain: 0, release: 3 }
-        }).toDestination();
-        const hDelay = new Tone.PingPongDelay("4n", 0.2).toDestination();
+            envelope: { attack: 0.3, decay: 1.2, sustain: 0, release: 4 }
+        }).connect(mainFilter);
+        const hDelay = new Tone.PingPongDelay("4n", 0.15).connect(mainFilter);
         harp.connect(hDelay);
-        harp.volume.value = -30;
+        harp.volume.value = -32;
 
         const strings = new Tone.PolySynth(Tone.Synth, {
             oscillator: { type: "triangle" },
-            envelope: { attack: 5, release: 8 }
-        }).toDestination();
-        const sFilter = new Tone.Filter(150, "lowpass").toDestination();
+            envelope: { attack: 6, release: 10 }
+        }).connect(mainFilter);
+        const sFilter = new Tone.Filter(130, "lowpass").connect(mainFilter);
         strings.connect(sFilter);
-        strings.volume.value = -35;
+        strings.volume.value = -38;
 
         const progression = [
             ["F2", "A3", "C4", "E4", "G4"],
@@ -63,35 +106,34 @@
                 strings.triggerAttack([progression[currentIdx][1], progression[currentIdx][2]], time);
             }
             const activeChord = progression[currentIdx];
-            const jitter = Math.random() * 0.04;
+            const jitter = Math.random() * 0.06;
 
-            if (Math.random() > 0.5) {
+            if (Math.random() > 0.52) {
                 const note = activeChord[Math.floor(Math.random() * 2) + 2];
-                const velocity = Math.random() * 0.08 + 0.02;
+                const velocity = Math.random() * 0.07 + 0.02;
                 piano.triggerAttackRelease(note, "1n", time + jitter, velocity);
             }
 
-            if (Math.random() > 0.7) {
+            if (Math.random() > 0.75) {
                 const hNote = activeChord[Math.floor(Math.random() * 2) + 3];
-                const hVelocity = Math.random() * 0.04 + 0.01;
-                harp.triggerAttackRelease(hNote, "2n", time + 0.2 + jitter, hVelocity);
+                const hVelocity = Math.random() * 0.03 + 0.01;
+                harp.triggerAttackRelease(hNote, "2n", time + 0.25 + jitter, hVelocity);
             }
         }, "4n");
 
         btn.addEventListener('click', async () => {
             if (!isPlaying) {
                 await Tone.start();
-                // Utilisation du Transport pour le mode arrière-plan propre
                 Tone.Transport.start();
                 loop.start(0);
-                btn.innerText = "PLAYING";
+                btn.innerText = "DANS LE FLUX";
                 btn.classList.add('active');
                 isPlaying = true;
             } else {
                 Tone.Transport.stop();
                 loop.stop();
                 strings.releaseAll();
-                btn.innerText = "START";
+                btn.innerText = "ÉVEILLER";
                 btn.classList.remove('active');
                 isPlaying = false;
             }
