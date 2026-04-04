@@ -3,39 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UG 67 - Cédric</title>
+    <title>UG 67 - MOBILE V9.5</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        :root { --v-fond: #ffffff; --v-accent: #2d4a3e; --v-soft: #a8b9ad; --v-red: #cc5a5a; --v-green: #4caf50; }
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
-        body { background: var(--v-fond); color: var(--v-accent); margin: 0; padding: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .header-tag { padding: 15px; font-family: monospace; font-size: 10px; font-weight: bold; opacity: 0.6; }
-        .container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        
-        /* Bouton Start avec retour visuel immédiat */
-        #mainBtn { width: 120px; height: 120px; border: 2px solid var(--v-accent); border-radius: 50%; background: white; color: var(--v-accent); font-size: 12px; letter-spacing: 4px; font-weight: 700; margin-bottom: 30px; cursor: pointer; display: block; }
-        #mainBtn.active { background: var(--v-accent); color: #fff; }
+        :root { 
+            --v-fond: #ffffff; 
+            --v-accent: #2d4a3e; 
+            --v-soft: #a8b9ad; 
+            --v-red: #cc5a5a; 
+            --v-green: #4caf50; 
+        }
 
-        .selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 320px; margin-bottom: 30px; }
-        .sel-btn { background: #f8fbf9; border: 1px solid #eee; color: var(--v-soft); font-size: 16px; height: 55px; border-radius: 14px; }
-        .sel-btn.active { color: var(--v-accent); border-color: var(--v-accent); font-weight: bold; background: #fff; }
+        * { 
+            -webkit-tap-highlight-color: transparent; 
+            box-sizing: border-box; 
+            outline: none; 
+        }
 
-        .auto-section { width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-        .toggle-container { width: 60px; height: 32px; background: #eee; border-radius: 20px; padding: 4px; position: relative; }
+        body { 
+            background: var(--v-fond); 
+            color: var(--v-accent); 
+            margin: 0; 
+            padding: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+
+        /* Header discret style application */
+        .header-tag { 
+            padding: 20px; 
+            font-family: monospace; 
+            font-size: 10px; 
+            font-weight: bold; 
+            opacity: 0.4; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .container { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: space-evenly; 
+            padding: 20px; 
+        }
+
+        /* Bouton Start circulaire et large pour le pouce */
+        #mainBtn { 
+            width: 140px; 
+            height: 140px; 
+            border: 1.5px solid var(--v-accent); 
+            border-radius: 50%; 
+            background: white; 
+            color: var(--v-accent); 
+            font-size: 12px; 
+            letter-spacing: 5px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+        }
+
+        #mainBtn.active { 
+            background: var(--v-accent); 
+            color: #fff; 
+            transform: scale(0.95);
+            box-shadow: 0 5px 15px rgba(45,74,62,0.2);
+        }
+
+        /* Grille adaptée au mobile (2 colonnes ou 4 selon largeur) */
+        .selector { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 12px; 
+            width: 100%; 
+            max-width: 340px; 
+        }
+
+        .sel-btn { 
+            background: #fcfdfc; 
+            border: 1px solid #f0f0f0; 
+            color: var(--v-soft); 
+            font-size: 16px; 
+            height: 60px; 
+            border-radius: 18px; 
+            cursor: pointer; 
+            transition: 0.3s;
+        }
+
+        .sel-btn.active { 
+            color: var(--v-accent); 
+            border-color: var(--v-accent); 
+            font-weight: bold; 
+            background: #fff; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        /* Section Auto en bas */
+        .auto-section { 
+            width: 100%; 
+            max-width: 300px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 15px; 
+        }
+
+        .toggle-container { 
+            width: 65px; 
+            height: 34px; 
+            background: #eee; 
+            border-radius: 20px; 
+            padding: 4px; 
+            cursor: pointer; 
+            position: relative; 
+            transition: 0.3s;
+        }
+
         .toggle-container.on { background: var(--v-green); }
         .toggle-container.off { background: var(--v-red); }
-        .toggle-circle { width: 24px; height: 24px; background: white; border-radius: 50%; transition: 0.2s; position: absolute; }
-        .toggle-container.on .toggle-circle { left: 32px; }
+
+        .toggle-circle { 
+            width: 26px; 
+            height: 26px; 
+            background: white; 
+            border-radius: 50%; 
+            transition: 0.3s; 
+            position: absolute; 
+            top: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .toggle-container.on .toggle-circle { left: 35px; }
         .toggle-container.off .toggle-circle { left: 4px; }
-        
-        #themeName { font-size: 14px; color: var(--v-accent); margin-top: 5px; }
-        #timerStatus { font-size: 9px; color: var(--v-soft); font-family: monospace; }
+
+        #themeName { 
+            font-size: 15px; 
+            font-weight: 400; 
+            color: var(--v-accent); 
+            letter-spacing: 0.5px;
+        }
+
+        #timerStatus { 
+            font-size: 10px; 
+            color: var(--v-soft); 
+            font-family: monospace; 
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
-    <div class="header-tag">UG 67 - CÉDRIC</div>
+
+    <div class="header-tag">UG 67 — CÉDRIC</div>
+
     <div class="container">
-        <button id="mainBtn" onclick="handleStart()">START</button>
+        <button id="mainBtn">START</button>
+        
         <div class="selector">
             <button class="sel-btn active" onclick="manualChange(1)">I</button>
             <button class="sel-btn" onclick="manualChange(2)">II</button>
@@ -46,125 +173,109 @@
             <button class="sel-btn" onclick="manualChange(7)">VII</button>
             <button class="sel-btn" onclick="manualChange(8)">VIII</button>
         </div>
+
         <div class="auto-section">
-            <div id="autoToggle" class="toggle-container off" onclick="toggleAuto()"><div class="toggle-circle"></div></div>
+            <div id="autoToggle" class="toggle-container off" onclick="toggleAuto()">
+                <div class="toggle-circle"></div>
+            </div>
             <div id="themeName">Orchestre Noble</div>
-            <div id="timerStatus">STATUT: STABLE</div>
+            <div id="timerStatus">Stable</div>
         </div>
     </div>
 
     <script>
-        // État Global
-        var isPlaying = false;
-        var isAuto = false;
-        var currentTheme = 1;
-        var audioTimer = null;
-        var themeStartTime = Date.now();
-        var autoCheckInterval = null;
-        var themeHistory = [0,0,0,0,0,0,0,0];
+        let isPlaying = false, isAuto = false, currentTheme = 1;
+        let themeStartTime = Date.now(), autoCheckInterval = null;
+        let themeHistory = [1, 1, 1, 1, 1, 1, 1, 1];
 
-        // 1. Initialisation immédiate du Master
-        var master = new Tone.Gain(0.7).toDestination();
-        var chords = [["F2", "A3"], ["D2", "F3"], ["Bb1", "D3"], ["G2", "Bb3"], ["C2", "E3"]];
-        var names = ["Orchestre Noble", "Onde Hertz", "Bois de Roseau", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
+        // Master Gain Boosté pour mobile
+        const master = new Tone.Gain(3.5).toDestination();
 
-        // 2. Création des instruments un par un
-        var synths = [
-            new Tone.Synth({oscillator:{type:"triangle"}, envelope:{attack:3, release:5}}).connect(master),
-            new Tone.Synth({oscillator:{type:"sine"}, envelope:{attack:5, release:5}}).connect(master),
-            new Tone.Synth({oscillator:{type:"sine"}, envelope:{attack:4, release:4}}).connect(master),
-            new Tone.Synth({oscillator:{type:"fatsine", count:2}, envelope:{attack:0.1, decay:0.3, sustain:0.1, release:2}}).connect(master),
-            new Tone.Synth({oscillator:{type:"fatpalsine", count:2}, envelope:{attack:5, release:7}}).connect(master),
-            new Tone.Synth({oscillator:{type:"sine"}, envelope:{attack:4, release:8}}).connect(master),
-            new Tone.Synth({oscillator:{type:"fatsine", count:2}, envelope:{attack:6, release:8}}).connect(master),
-            new Tone.Synth({oscillator:{type:"fatpalsine", count:2}, envelope:{attack:8, release:10}}).connect(master)
-        ];
+        // Chargement des sessions enregistrées
+        const players = new Tone.Players({
+            "t1": "theme1.webm", "t2": "theme2.webm", "t3": "theme3.webm", "t4": "theme4.webm",
+            "t5": "theme5.webm", "t6": "theme6.webm", "t7": "theme7.webm", "t8": "theme8.webm"
+        }, () => {
+            document.getElementById('timerStatus').innerText = "SYSTÈME PRÊT";
+        }).connect(master);
 
-        synths.forEach(function(s, i) { s.volume.value = (i === 3) ? -2 : -12; });
+        Object.keys(players._players).forEach(key => {
+            const p = players.player(key);
+            p.loop = true;
+            p.fadeIn = 6;
+            p.fadeOut = 6;
+        });
 
-        // 3. Fonction Start/Stop Ultra-Simple
-        function handleStart() {
-            // Débloquer l'audio (Requis sur mobile)
-            Tone.start();
-            
-            var btn = document.getElementById('mainBtn');
-            
+        const names = ["Orchestre Noble", "Onde Hertz", "Bois de Roseau", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
+
+        function play() {
+            if (!isPlaying) return;
+            const startOffset = Math.random() * 30; // Saut aléatoire pour la variété
+            players.player("t" + currentTheme).start(Tone.now(), startOffset);
+        }
+
+        document.getElementById('mainBtn').onclick = async () => {
+            await Tone.start();
             if (!isPlaying) {
                 isPlaying = true;
-                btn.innerText = "STOP";
-                btn.className = "active";
-                playLoop();
+                play();
+                document.getElementById('mainBtn').innerText = "STOP";
+                document.getElementById('mainBtn').classList.add("active");
             } else {
                 isPlaying = false;
-                btn.innerText = "START";
-                btn.className = "";
-                if (audioTimer) clearTimeout(audioTimer);
-                synths.forEach(function(s) { s.triggerRelease(); });
+                players.stopAll();
+                document.getElementById('mainBtn').innerText = "START";
+                document.getElementById('mainBtn').classList.remove("active");
             }
-        }
-
-        function playLoop() {
-            if (!isPlaying) return;
-            
-            var chord = chords[Math.floor(Math.random() * chords.length)];
-            var s = synths[currentTheme - 1];
-            var jitter = Math.random() * 0.5;
-
-            s.triggerAttackRelease(chord[1], "2n", "+" + (0.5 + jitter));
-
-            audioTimer = setTimeout(playLoop, 7000 + Math.random() * 7000);
-        }
+        };
 
         function manualChange(n) {
+            if (n === currentTheme && isPlaying) return;
+            const oldT = currentTheme;
             currentTheme = n;
             themeStartTime = Date.now();
             themeHistory[n-1]++;
-            
-            var btns = document.getElementsByClassName('sel-btn');
-            for(var i=0; i<btns.length; i++) {
-                btns[i].classList.remove('active');
-            }
-            btns[n-1].classList.add('active');
-            
+            document.querySelectorAll('.sel-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === n));
             document.getElementById('themeName').innerText = names[n-1];
-            
             if (isPlaying) {
-                if (audioTimer) clearTimeout(audioTimer);
-                playLoop();
+                players.player("t" + n).start();
+                players.player("t" + oldT).stop();
             }
         }
 
         function toggleAuto() {
             isAuto = !isAuto;
-            var toggle = document.getElementById('autoToggle');
-            toggle.className = isAuto ? 'toggle-container on' : 'toggle-container off';
-            
+            document.getElementById('autoToggle').className = isAuto ? 'toggle-container on' : 'toggle-container off';
             if (isAuto) {
                 themeStartTime = Date.now();
                 autoCheckInterval = setInterval(checkAutoChange, 30000);
             } else {
-                if (autoCheckInterval) clearInterval(autoCheckInterval);
-                document.getElementById('timerStatus').innerText = "STATUT: STABLE";
+                clearInterval(autoCheckInterval);
+                document.getElementById('timerStatus').innerText = "Stable";
             }
         }
 
         function checkAutoChange() {
             if (!isPlaying || !isAuto) return;
-            var mins = (Date.now() - themeStartTime) / 60000;
-            var chance = 0;
-            if (mins >= 100) chance = 100; else if (mins >= 90) chance = 90;
-            else if (mins >= 75) chance = 75; else if (mins >= 60) chance = 60;
-            else if (mins >= 45) chance = 45; else if (mins >= 30) chance = 30;
-            
-            document.getElementById('timerStatus').innerText = "AUTO: " + Math.floor(mins) + "M / " + chance + "%";
-            
-            if (Math.random() * 100 < chance) {
-                var w = themeHistory.map(function(h){ return 1/(h+1); });
-                w[currentTheme-1] = 0;
-                var sum = w.reduce(function(a,b){return a+b;},0), r = Math.random()*sum, acc=0, nt=1;
-                for(var i=0; i<w.length; i++){ acc+=w[i]; if(r<=acc){ nt=i+1; break; }}
-                manualChange(nt);
+            const mins = (Date.now() - themeStartTime) / 60000;
+            let chance = 0;
+            if (mins >= 100) chance = 100;
+            else if (mins >= 60) chance = 60;
+            else if (mins >= 30) chance = 30;
+            document.getElementById('timerStatus').innerText = `Focus: ${Math.floor(mins)}m (${chance}%)`;
+            if (Math.random() * 100 < chance) pickSmartNextTheme();
+        }
+
+        function pickSmartNextTheme() {
+            let weights = themeHistory.map(h => 1 / (h + 1));
+            weights[currentTheme - 1] = 0;
+            let sum = weights.reduce((a, b) => a + b, 0);
+            let rand = Math.random() * sum, acc = 0, nextT = 1;
+            for (let i = 0; i < weights.length; i++) {
+                acc += weights[i];
+                if (rand <= acc) { nextT = i + 1; break; }
             }
+            manualChange(nextT);
         }
     </script>
 </body>
