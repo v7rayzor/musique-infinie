@@ -12,7 +12,7 @@
     <link rel="apple-touch-icon" href="https://via.placeholder.com/192/f0f9f5/a8b9ad?text=UG">
     <meta name="theme-color" content="#ffffff">
 
-    <title>UG 67 - STUDIO V18.7</title>
+    <title>UG 67 - STUDIO V18.8</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     
     <style>
@@ -168,12 +168,12 @@
         <div class="auto-section">
             <div id="autoToggle" class="toggle-container" onclick="toggleAuto()"><div class="toggle-circle"></div></div>
             <div id="themeName">Orchestre Noble</div>
-            <div id="statusIndicator">MODE STABLE</div>
+            <div id="statusIndicator">STABLE</div>
         </div>
     </div>
 
     <script>
-        // ACTIVATION SERVICE WORKER
+        // SERVICE WORKER
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(() => {});
         }
@@ -278,7 +278,7 @@
             
             if (isAuto) {
                 themeStartTime = Date.now();
-                indicator.innerText = "AUTO : RECHERCHE PALIERS";
+                indicator.innerText = "AUTOMATIQUE";
                 autoCheckInterval = setInterval(() => {
                     if (!isPlaying || !isAuto) return;
                     
@@ -294,7 +294,7 @@
                 }, 1000); 
             } else {
                 clearInterval(autoCheckInterval);
-                indicator.innerText = "MODE STABLE";
+                indicator.innerText = "STABLE";
             }
         }
 
