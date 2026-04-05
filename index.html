@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UG 67 - MOBILE V9.6 FINAL</title>
+    <title>UG 67 - V9.6 MASTER</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         :root { 
@@ -51,6 +51,7 @@
             padding: 20px; 
         }
 
+        /* Bouton central large pour mobile */
         #mainBtn { 
             width: 140px; 
             height: 140px; 
@@ -171,9 +172,10 @@
         let themeStartTime = Date.now(), autoCheckInterval = null;
         let themeHistory = [1, 1, 1, 1, 1, 1, 1, 1];
 
-        // Gain réglé à 3.0 pour éviter toute saturation sur mobile
+        // Gain à 3.0 (Bon équilibre entre puissance et pureté mobile)
         const master = new Tone.Gain(3.0).toDestination();
 
+        // Chargement des 8 fichiers longs
         const players = new Tone.Players({
             "t1": "theme1.webm", "t2": "theme2.webm", "t3": "theme3.webm", "t4": "theme4.webm",
             "t5": "theme5.webm", "t6": "theme6.webm", "t7": "theme7.webm", "t8": "theme8.webm"
@@ -181,18 +183,20 @@
             document.getElementById('timerStatus').innerText = "V7.0 CLONE - PRÊT";
         }).connect(master);
 
-        // CONFIGURATION BOUCLE INFINIE
+        // CONFIGURATION ANTI-COUPURE (GAPLESS)
         Object.keys(players._players).forEach(key => {
             const p = players.player(key);
             p.loop = true; 
-            p.fadeIn = 6;
-            p.fadeOut = 6;
+            // 8 secondes de fondu pour une transition parfaite sur 5 minutes
+            p.fadeIn = 8;
+            p.fadeOut = 8;
 
-            // Sécurité si le fichier s'arrête (cas des mobiles qui coupent la RAM)
+            // Sécurité RAM mobile : Si le son s'arrête, on relance
             p.onstop = () => {
                 if (isPlaying && currentTheme === parseInt(key.replace('t',''))) {
-                    const restartOffset = Math.random() * 20;
-                    p.start(Tone.now() + 0.2, restartOffset);
+                    // On repart avec un décalage aléatoire pour varier
+                    const restartOffset = Math.random() * 60;
+                    p.start(Tone.now() + 0.5, restartOffset);
                 }
             };
         });
@@ -203,10 +207,11 @@
             if (!isPlaying) return;
             const p = players.player("t" + currentTheme);
             if(p.buffer.loaded) {
-                const startOffset = Math.random() * 30;
+                // Départ aléatoire dans le fichier de 5min pour ne jamais entendre le même début
+                const startOffset = Math.random() * 120; 
                 p.start(Tone.now(), startOffset);
             } else {
-                setTimeout(play, 1000); // Réessaie si le fichier charge encore
+                setTimeout(play, 1000);
             }
         }
 
@@ -241,6 +246,7 @@
             }
         }
 
+        // --- LOGIQUE AUTOMATIQUE V7.0 ---
         function toggleAuto() {
             isAuto = !isAuto;
             document.getElementById('autoToggle').className = isAuto ? 'toggle-container on' : 'toggle-container off';
