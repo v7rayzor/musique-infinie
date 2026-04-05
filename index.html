@@ -5,14 +5,16 @@
     <link rel="manifest" href="manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="UG 67">
     <link rel="apple-touch-icon" href="https://via.placeholder.com/192/f0f9f5/a8b9ad?text=UG">
     <meta name="theme-color" content="#ffffff">
 
-    <title>UG 67 - CALME V18.5</title>
+    <title>UG 67 - STUDIO V18.7</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    
     <style>
         :root { --v-fond: #ffffff; --v-accent: #2d4a3e; --v-soft: #a8b9ad; --v-green: #4caf50; }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
@@ -29,7 +31,7 @@
             overflow: hidden; 
         }
 
-        /* TEXTE EN HAUT À GAUCHE */
+        /* IDENTIFIANT EN HAUT À GAUCHE */
         .header-tag { 
             padding: 15px 20px; 
             font-family: monospace; 
@@ -38,7 +40,7 @@
             opacity: 0.3; 
             text-transform: uppercase; 
             letter-spacing: 1px;
-            text-align: left; /* Aligné à gauche */
+            text-align: left;
             width: 100%;
         }
 
@@ -171,7 +173,11 @@
     </div>
 
     <script>
-        // Le script reste le même pour conserver tes paliers et le fonctionnement audio
+        // ACTIVATION SERVICE WORKER
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+
         let isPlaying = false, isAuto = false, currentTheme = 1;
         let themeStartTime = Date.now(), lastCheckedMin = -1, nextLoopTimeout = null, autoCheckInterval = null;
         let themeWeights = [1, 1, 1, 1, 1, 1, 1, 1];
