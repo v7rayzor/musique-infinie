@@ -53,11 +53,14 @@
         let themeStartTime = Date.now(), lastChanceSec = 0, nextLoopTimeout = null, autoCheckInterval = null;
         let themeWeights = [1, 1, 1, 1, 1, 1, 1, 1];
 
-        const limiter = new Tone.Limiter(-2).toDestination();
-        const mainBus = new Tone.Gain(1).connect(limiter);
+        // Limiteur de sortie pour éviter toute saturation numérique
+        const limiter = new Tone.Limiter(-3).toDestination();
+        
+        // On crée un Gain Global avec une rampe douce
+        const mainOutput = new Tone.Gain(1).connect(limiter);
 
         const createDeck = () => {
-            const g = new Tone.Gain(0).connect(mainBus);
+            const g = new Tone.Gain(0).connect(mainOutput);
             const p = new Tone.Players({
                 "t1": "theme1.webm", "t2": "theme2.webm", "t3": "theme3.webm", "t4": "theme4.webm",
                 "t5": "theme5.webm", "t6": "theme6.webm", "t7": "theme7.webm", "t8": "theme8.webm"
@@ -74,15 +77,18 @@
         function scheduleNextLoop() {
             if (!isPlaying) return;
             const p = activeDeck.players.player("t" + currentTheme);
-            const timeToWait = (p.buffer.duration - 4.1) * 1000;
+            const fadeTime = 4;
+            const timeToWait = (p.buffer.duration - (fadeTime + 0.1)) * 1000;
 
             clearTimeout(nextLoopTimeout);
             nextLoopTimeout = setTimeout(() => {
                 if (isPlaying) {
                     const nextDeck = (activeDeck === deckA) ? deckB : deckA;
-                    nextDeck.volume.gain.rampTo(1, 4);
+                    // On lance le son AVANT de monter le volume pour stabiliser le buffer
                     nextDeck.players.player("t" + currentTheme).start(Tone.now());
-                    activeDeck.volume.gain.rampTo(0, 4);
+                    nextDeck.volume.gain.rampTo(1, fadeTime);
+                    
+                    activeDeck.volume.gain.rampTo(0, fadeTime);
                     activeDeck = nextDeck;
                     scheduleNextLoop();
                 }
@@ -100,7 +106,13 @@
                 document.getElementById('mainBtn').classList.add("active");
             } else {
                 isPlaying = false; clearTimeout(nextLoopTimeout);
-                deckA.volume.gain.rampTo(0, 0.1); deckB.volume.gain.rampTo(0, 0.1);
+                // On baisse le master doucement pour éviter le clic final
+                mainOutput.gain.rampTo(0, 0.2);
+                setTimeout(() => {
+                    deckA.players.stopAll(); deckB.players.stopAll();
+                    deckA.volume.gain.value = 0; deckB.volume.gain.value = 0;
+                    mainOutput.gain.value = 1;
+                }, 300);
                 document.getElementById('mainBtn').innerText = "START";
                 document.getElementById('mainBtn').classList.remove("active");
             }
@@ -122,19 +134,21 @@
                 const nextDeck = (activeDeck === deckA) ? deckB : deckA;
 
                 if (isAuto) {
+                    // AUTO : Fade out complet puis Fade in
                     activeDeck.volume.gain.rampTo(0, 2);
-                    nextDeck.volume.gain.value = 0;
                     setTimeout(() => {
                         if(!isPlaying) return;
-                        nextDeck.players.player("t" + n).start();
+                        nextDeck.players.player("t" + n).start(Tone.now());
                         nextDeck.volume.gain.rampTo(1, 2);
                         activeDeck = nextDeck;
                         scheduleNextLoop();
                     }, 2500);
                 } else {
-                    activeDeck.volume.gain.setTargetAtTime(0, now, 0.02);
-                    nextDeck.volume.gain.value = 1;
-                    nextDeck.players.player("t" + n).start(now + 0.05);
+                    // MANUEL : On utilise une micro-rampe de 0.1s au lieu de 0.02s
+                    // 0.1s est le seuil de sécurité sur mobile pour éviter le scratch
+                    activeDeck.volume.gain.rampTo(0, 0.1); 
+                    nextDeck.players.player("t" + n).start(now + 0.1);
+                    nextDeck.volume.gain.rampTo(1, 0.1);
                     activeDeck = nextDeck;
                     scheduleNextLoop();
                 }
@@ -145,14 +159,12 @@
             isAuto = !isAuto;
             document.getElementById('autoToggle').classList.toggle('on', isAuto);
             const indicator = document.getElementById('statusIndicator');
-            
             if (isAuto) {
                 themeStartTime = Date.now();
                 indicator.innerText = "AUTOMATIQUE";
                 autoCheckInterval = setInterval(() => {
                     if (!isPlaying || !isAuto) return;
                     const secs = Math.floor((Date.now() - themeStartTime) / 1000);
-                    // Le calcul se fait sans mise à jour du texte de l'indicateur
                     if ([30, 45, 60, 75, 90, 100].includes(secs) && lastChanceSec !== secs) {
                         lastChanceSec = secs;
                         if (Math.random() * 100 < (secs === 100 ? 100 : secs)) pickSmartNextTheme();
