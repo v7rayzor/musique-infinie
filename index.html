@@ -3,146 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UG 67 - V9.6 MASTER</title>
+    <title>UG 67 - V10.2 PERFECTION</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        :root { 
-            --v-fond: #ffffff; 
-            --v-accent: #2d4a3e; 
-            --v-soft: #a8b9ad; 
-            --v-red: #cc5a5a; 
-            --v-green: #4caf50; 
-        }
-
-        * { 
-            -webkit-tap-highlight-color: transparent; 
-            box-sizing: border-box; 
-            outline: none; 
-        }
-
-        body { 
-            background: var(--v-fond); 
-            color: var(--v-accent); 
-            margin: 0; 
-            padding: 0; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
-            overflow: hidden; 
-        }
-
-        .header-tag { 
-            padding: 20px; 
-            font-family: monospace; 
-            font-size: 10px; 
-            font-weight: bold; 
-            opacity: 0.4; 
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .container { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: space-evenly; 
-            padding: 20px; 
-        }
-
-        /* Bouton central large pour mobile */
-        #mainBtn { 
-            width: 140px; 
-            height: 140px; 
-            border: 1.5px solid var(--v-accent); 
-            border-radius: 50%; 
-            background: white; 
-            color: var(--v-accent); 
-            font-size: 12px; 
-            letter-spacing: 5px; 
-            font-weight: 700; 
-            cursor: pointer; 
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-        }
-
-        #mainBtn.active { 
-            background: var(--v-accent); 
-            color: #fff; 
-            transform: scale(0.95);
-        }
-
-        .selector { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 12px; 
-            width: 100%; 
-            max-width: 340px; 
-        }
-
-        .sel-btn { 
-            background: #fcfdfc; 
-            border: 1px solid #f0f0f0; 
-            color: var(--v-soft); 
-            font-size: 16px; 
-            height: 60px; 
-            border-radius: 18px; 
-            cursor: pointer; 
-            transition: 0.3s;
-        }
-
-        .sel-btn.active { 
-            color: var(--v-accent); 
-            border-color: var(--v-accent); 
-            font-weight: bold; 
-            background: #fff; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .auto-section { 
-            width: 100%; 
-            max-width: 300px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            gap: 15px; 
-        }
-
-        .toggle-container { 
-            width: 65px; 
-            height: 34px; 
-            background: #eee; 
-            border-radius: 20px; 
-            padding: 4px; 
-            cursor: pointer; 
-            position: relative; 
-            transition: 0.3s;
-        }
-
+        :root { --v-fond: #ffffff; --v-accent: #2d4a3e; --v-soft: #a8b9ad; --v-red: #cc5a5a; --v-green: #4caf50; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
+        body { background: var(--v-fond); color: var(--v-accent); margin: 0; padding: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .header-tag { padding: 20px; font-family: monospace; font-size: 10px; opacity: 0.4; letter-spacing: 2px; text-align: center; }
+        .container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 20px; }
+        #mainBtn { width: 130px; height: 130px; border: 1.5px solid var(--v-accent); border-radius: 50%; background: white; color: var(--v-accent); font-size: 12px; letter-spacing: 5px; font-weight: 700; cursor: pointer; transition: 0.4s; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        #mainBtn.active { background: var(--v-accent); color: #fff; transform: scale(0.95); }
+        .selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 340px; }
+        .sel-btn { background: #fcfdfc; border: 1px solid #f0f0f0; color: var(--v-soft); font-size: 16px; height: 55px; border-radius: 15px; cursor: pointer; }
+        .sel-btn.active { color: var(--v-accent); border-color: var(--v-accent); font-weight: bold; background: #fff; }
+        .auto-section { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .toggle-container { width: 60px; height: 30px; background: #eee; border-radius: 20px; position: relative; cursor: pointer; transition: 0.3s; }
         .toggle-container.on { background: var(--v-green); }
-        .toggle-container.off { background: var(--v-red); }
-
-        .toggle-circle { 
-            width: 26px; 
-            height: 26px; 
-            background: white; 
-            border-radius: 50%; 
-            transition: 0.3s; 
-            position: absolute; 
-            top: 4px;
-        }
-
-        .toggle-container.on .toggle-circle { left: 35px; }
-        .toggle-container.off .toggle-circle { left: 4px; }
-
-        #themeName { font-size: 15px; font-weight: 400; color: var(--v-accent); }
-        #timerStatus { font-size: 10px; color: var(--v-soft); font-family: monospace; text-transform: uppercase; }
+        .toggle-circle { width: 22px; height: 22px; background: white; border-radius: 50%; position: absolute; top: 4px; left: 4px; transition: 0.3s; }
+        .toggle-container.on .toggle-circle { left: 34px; }
+        #themeName { font-size: 15px; }
+        #timerStatus { font-size: 10px; color: var(--v-soft); font-family: monospace; }
     </style>
 </head>
 <body>
 
-    <div class="header-tag">UG 67 — CÉDRIC</div>
+    <div class="header-tag">UG 67 — V10.2 GAPLESS MASTER</div>
 
     <div class="container">
         <button id="mainBtn">START</button>
@@ -159,71 +44,72 @@
         </div>
 
         <div class="auto-section">
-            <div id="autoToggle" class="toggle-container off" onclick="toggleAuto()">
-                <div class="toggle-circle"></div>
-            </div>
+            <div id="autoToggle" class="toggle-container" onclick="toggleAuto()"><div class="toggle-circle"></div></div>
             <div id="themeName">Orchestre Noble</div>
-            <div id="timerStatus">Chargement...</div>
+            <div id="timerStatus">Prêt</div>
         </div>
     </div>
 
     <script>
         let isPlaying = false, isAuto = false, currentTheme = 1;
-        let themeStartTime = Date.now(), autoCheckInterval = null;
+        let themeStartTime = Date.now(), lastChanceSec = 0;
         let themeHistory = [1, 1, 1, 1, 1, 1, 1, 1];
+        let nextLoopTimeout = null;
 
-        // Gain à 3.0 (Bon équilibre entre puissance et pureté mobile)
-        const master = new Tone.Gain(3.0).toDestination();
+        const master = new Tone.Gain(3.5).toDestination();
 
-        // Chargement des 8 fichiers longs
         const players = new Tone.Players({
             "t1": "theme1.webm", "t2": "theme2.webm", "t3": "theme3.webm", "t4": "theme4.webm",
             "t5": "theme5.webm", "t6": "theme6.webm", "t7": "theme7.webm", "t8": "theme8.webm"
         }, () => {
-            document.getElementById('timerStatus').innerText = "V7.0 CLONE - PRÊT";
+            document.getElementById('timerStatus').innerText = "Audio Prêt";
         }).connect(master);
 
-        // CONFIGURATION ANTI-COUPURE (GAPLESS)
         Object.keys(players._players).forEach(key => {
             const p = players.player(key);
-            p.loop = true; 
-            // 8 secondes de fondu pour une transition parfaite sur 5 minutes
-            p.fadeIn = 8;
-            p.fadeOut = 8;
-
-            // Sécurité RAM mobile : Si le son s'arrête, on relance
-            p.onstop = () => {
-                if (isPlaying && currentTheme === parseInt(key.replace('t',''))) {
-                    // On repart avec un décalage aléatoire pour varier
-                    const restartOffset = Math.random() * 60;
-                    p.start(Tone.now() + 0.5, restartOffset);
-                }
-            };
+            p.loop = false; // On gère manuellement
+            p.fadeIn = 6;
+            p.fadeOut = 6;
         });
 
-        const names = ["Orchestre Noble", "Onde Hertz", "Bois de Roseau", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
+        // LA FONCTION BOUCLE MAGIQUE
+        function scheduleNextLoop() {
+            if (!isPlaying) return;
+            
+            const p = players.player("t" + currentTheme);
+            const duration = p.buffer.duration;
+            
+            // On relance 5 secondes AVANT la fin réelle du fichier
+            // Cela crée un chevauchement parfait (crossfade)
+            const timeToWait = (duration - 5) * 1000;
+
+            nextLoopTimeout = setTimeout(() => {
+                if (isPlaying) {
+                    console.log("Relance invisible (Crossfade)");
+                    // On ne stoppe pas l'ancien, le fadeOut s'en chargera ou il finira naturellement
+                    p.start(Tone.now(), 0); 
+                    scheduleNextLoop();
+                }
+            }, timeToWait);
+        }
 
         function play() {
             if (!isPlaying) return;
             const p = players.player("t" + currentTheme);
-            if(p.buffer.loaded) {
-                // Départ aléatoire dans le fichier de 5min pour ne jamais entendre le même début
-                const startOffset = Math.random() * 120; 
-                p.start(Tone.now(), startOffset);
-            } else {
-                setTimeout(play, 1000);
-            }
+            p.start(Tone.now(), 0);
+            scheduleNextLoop();
         }
 
         document.getElementById('mainBtn').onclick = async () => {
             await Tone.start();
             if (!isPlaying) {
-                isPlaying = true;
+                isPlaying = true; themeStartTime = Date.now(); lastChanceSec = 0;
                 play();
                 document.getElementById('mainBtn').innerText = "STOP";
                 document.getElementById('mainBtn').classList.add("active");
             } else {
                 isPlaying = false;
+                clearTimeout(nextLoopTimeout);
                 players.stopAll();
                 document.getElementById('mainBtn').innerText = "START";
                 document.getElementById('mainBtn').classList.remove("active");
@@ -234,25 +120,28 @@
             if (n === currentTheme && isPlaying) return;
             const oldT = currentTheme;
             currentTheme = n;
-            themeStartTime = Date.now();
+            themeStartTime = Date.now(); lastChanceSec = 0;
             themeHistory[n-1]++;
             
             document.querySelectorAll('.sel-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === n));
             document.getElementById('themeName').innerText = names[n-1];
             
             if (isPlaying) {
-                players.player("t" + n).start();
-                players.player("t" + oldT).stop();
+                clearTimeout(nextLoopTimeout);
+                players.player("t" + n).start(Tone.now(), 0);
+                players.player("t" + oldT).stop("+6"); // Stop après le fade
+                scheduleNextLoop();
             }
         }
 
-        // --- LOGIQUE AUTOMATIQUE V7.0 ---
+        const names = ["Orchestre Noble", "Onde Hertz", "Bois de Roseau", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
+
         function toggleAuto() {
             isAuto = !isAuto;
-            document.getElementById('autoToggle').className = isAuto ? 'toggle-container on' : 'toggle-container off';
+            document.getElementById('autoToggle').classList.toggle('on', isAuto);
             if (isAuto) {
                 themeStartTime = Date.now();
-                autoCheckInterval = setInterval(checkAutoChange, 30000);
+                autoCheckInterval = setInterval(checkAutoChange, 1000);
             } else {
                 clearInterval(autoCheckInterval);
                 document.getElementById('timerStatus').innerText = "Stable";
@@ -261,17 +150,13 @@
 
         function checkAutoChange() {
             if (!isPlaying || !isAuto) return;
-            const mins = (Date.now() - themeStartTime) / 60000;
-            let chance = 0;
-            if (mins >= 100) chance = 100;
-            else if (mins >= 90) chance = 90;
-            else if (mins >= 75) chance = 75;
-            else if (mins >= 60) chance = 60;
-            else if (mins >= 45) chance = 45;
-            else if (mins >= 30) chance = 30;
-
-            document.getElementById('timerStatus').innerText = `Focus: ${Math.floor(mins)}m (${chance}%)`;
-            if (Math.random() * 100 < chance) pickSmartNextTheme();
+            const secs = Math.floor((Date.now() - themeStartTime) / 1000);
+            const paliers = [30, 45, 60, 75, 90, 100];
+            if (paliers.includes(secs) && lastChanceSec !== secs) {
+                lastChanceSec = secs;
+                if (Math.random() * 100 < (secs === 100 ? 100 : secs)) pickSmartNextTheme();
+            }
+            document.getElementById('timerStatus').innerText = `Tps: ${secs}s`;
         }
 
         function pickSmartNextTheme() {
