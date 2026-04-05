@@ -2,37 +2,149 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <link rel="manifest" href="manifest.json">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <link rel="manifest" href="manifest.json">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default"> <meta name="apple-mobile-web-app-title" content="UG 67">
-    
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="UG 67">
     <link rel="apple-touch-icon" href="https://via.placeholder.com/192/f0f9f5/a8b9ad?text=UG">
-    
     <meta name="theme-color" content="#ffffff">
 
-    <title>UG 67 - CALME</title>
+    <title>UG 67 - CALME V18.5</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         :root { --v-fond: #ffffff; --v-accent: #2d4a3e; --v-soft: #a8b9ad; --v-green: #4caf50; }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
-        body { background: var(--v-fond); color: var(--v-accent); margin: 0; padding: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .header-tag { padding: 60px 20px 10px; font-family: monospace; font-size: 10px; font-weight: bold; opacity: 0.4; text-transform: uppercase; letter-spacing: 2px; }
-        .container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 20px; }
-        #mainBtn { width: 150px; height: 150px; border: 1px solid #f0f0f0; border-radius: 50%; background: #fcfdfc; color: var(--v-accent); font-size: 11px; letter-spacing: 5px; font-weight: 700; cursor: pointer; transition: 0.4s; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
-        #mainBtn.active { background: var(--v-accent); color: #fff; border-color: var(--v-accent); transform: scale(0.95); box-shadow: 0 10px 30px rgba(45,74,62,0.1); }
-        .selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 340px; }
-        .sel-btn { background: #fcfdfc; border: 1px solid #f8fcf9; color: var(--v-soft); font-size: 16px; height: 60px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
-        .sel-btn.active { color: var(--v-accent); border-color: #eee; font-weight: bold; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
-        .auto-section { width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
-        .toggle-container { width: 65px; height: 34px; background: #eee; border-radius: 20px; padding: 4px; cursor: pointer; position: relative; transition: 0.3s; }
+        
+        body { 
+            background: var(--v-fond); 
+            color: var(--v-accent); 
+            margin: 0; 
+            padding: 0; 
+            font-family: sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
+
+        /* TEXTE EN HAUT À GAUCHE */
+        .header-tag { 
+            padding: 15px 20px; 
+            font-family: monospace; 
+            font-size: 9px; 
+            font-weight: bold; 
+            opacity: 0.3; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            text-align: left; /* Aligné à gauche */
+            width: 100%;
+        }
+
+        .container { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: space-evenly; 
+            padding: 10px 20px 40px 20px; 
+        }
+
+        #mainBtn { 
+            width: 150px; 
+            height: 150px; 
+            border: 1px solid #f0f0f0; 
+            border-radius: 50%; 
+            background: #fcfdfc; 
+            color: var(--v-accent); 
+            font-size: 11px; 
+            letter-spacing: 5px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: 0.4s; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.02); 
+        }
+
+        #mainBtn.active { 
+            background: var(--v-accent); 
+            color: #fff; 
+            border-color: var(--v-accent); 
+            transform: scale(0.95); 
+            box-shadow: 0 10px 30px rgba(45,74,62,0.1); 
+        }
+
+        .selector { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 12px; 
+            width: 100%; 
+            max-width: 340px; 
+        }
+
+        .sel-btn { 
+            background: #fcfdfc; 
+            border: 1px solid #f8fcf9; 
+            color: var(--v-soft); 
+            font-size: 16px; 
+            height: 60px; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            transition: 0.3s; 
+        }
+
+        .sel-btn.active { 
+            color: var(--v-accent); 
+            border-color: #eee; 
+            font-weight: bold; 
+            background: #fff; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03); 
+        }
+
+        .auto-section { 
+            width: 100%; 
+            max-width: 300px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 15px; 
+        }
+
+        .toggle-container { 
+            width: 65px; 
+            height: 34px; 
+            background: #eee; 
+            border-radius: 20px; 
+            padding: 4px; 
+            cursor: pointer; 
+            position: relative; 
+            transition: 0.3s; 
+        }
+
         .toggle-container.on { background: var(--v-green); }
-        .toggle-circle { width: 26px; height: 26px; background: white; border-radius: 50%; transition: 0.3s; position: absolute; top: 4px; left: 4px; }
+
+        .toggle-circle { 
+            width: 26px; 
+            height: 26px; 
+            background: white; 
+            border-radius: 50%; 
+            transition: 0.3s; 
+            position: absolute; 
+            top: 4px; 
+            left: 4px; 
+        }
+
         .toggle-container.on .toggle-circle { left: 35px; }
+
         #themeName { font-size: 16px; font-weight: 500; color: var(--v-accent); letter-spacing: 0.5px; }
-        #statusIndicator { font-size: 10px; color: var(--v-soft); font-family: monospace; letter-spacing: 1.5px; text-transform: uppercase; }
+        
+        #statusIndicator { 
+            font-size: 10px; 
+            color: var(--v-soft); 
+            font-family: monospace; 
+            letter-spacing: 1.5px; 
+            text-transform: uppercase; 
+        }
     </style>
 </head>
 <body>
@@ -59,6 +171,7 @@
     </div>
 
     <script>
+        // Le script reste le même pour conserver tes paliers et le fonctionnement audio
         let isPlaying = false, isAuto = false, currentTheme = 1;
         let themeStartTime = Date.now(), lastCheckedMin = -1, nextLoopTimeout = null, autoCheckInterval = null;
         let themeWeights = [1, 1, 1, 1, 1, 1, 1, 1];
@@ -166,11 +279,8 @@
                     const minutesPassed = Math.floor((Date.now() - themeStartTime) / 60000);
                     const paliers = [30, 45, 60, 75, 90, 100]; 
                     
-                    // ON VERIFIE SI ON EST SUR UN PALIER ET SI ON NE L'A PAS DÉJÀ TESTÉ
                     if (paliers.includes(minutesPassed) && lastCheckedMin !== minutesPassed) {
                         lastCheckedMin = minutesPassed;
-                        
-                        // Dé de probabilité strict au palier
                         if (Math.random() * 100 < minutesPassed) {
                             pickSmartNextTheme();
                         }
