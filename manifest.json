@@ -1,7 +1,8 @@
 {
   "name": "UG 67 Studio",
   "short_name": "UG 67",
-  "start_url": "./index.html",
+  "start_url": "/musique-infine/",
+  "scope": "/musique-infine/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
@@ -9,12 +10,14 @@
     {
       "src": "https://via.placeholder.com/192/f0f9f5/a8b9ad?text=UG",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "https://via.placeholder.com/512/f0f9f5/a8b9ad?text=UG",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
