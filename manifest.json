@@ -1,0 +1,23 @@
+{
+  "short_name": "UG 67",
+  "name": "UG 67 - Studio Calme",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192/f0f9f5/a8b9ad?text=UG",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://via.placeholder.com/512/f0f9f5/a8b9ad?text=UG",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#ffffff"
+}
