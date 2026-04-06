@@ -12,7 +12,7 @@
     <link rel="apple-touch-icon" href="https://via.placeholder.com/192/f0f9f5/a8b9ad?text=UG">
     <meta name="theme-color" content="#ffffff">
 
-    <title>UG 67 - STUDIO V26.2</title>
+    <title>UG 67 - STUDIO V26.3</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     
     <style>
@@ -20,10 +20,13 @@
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
         body { background: var(--v-fond); color: var(--v-accent); margin: 0; padding: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
+        /* Layout haut */
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; width: 100%; }
         .header-tag { font-family: monospace; font-size: 9px; font-weight: bold; opacity: 0.3; text-transform: uppercase; letter-spacing: 1px; }
+        .version-tag { font-family: monospace; font-size: 9px; opacity: 0.3; font-weight: bold; }
         
-        #updateNotice { display: none; background: #fcfdfc; border: 1px solid var(--v-light-green); color: var(--v-light-green); font-size: 9px; padding: 8px 12px; border-radius: 20px; font-weight: bold; letter-spacing: 1px; cursor: pointer; transition: 0.3s; }
+        /* Bouton MAJ */
+        #updateNotice { display: none; background: #fcfdfc; border: 1px solid var(--v-light-green); color: var(--v-light-green); font-size: 9px; padding: 8px 12px; border-radius: 20px; font-weight: bold; letter-spacing: 1px; cursor: pointer; transition: 0.3s; position: absolute; right: 20px; top: 10px; z-index: 10; }
         #updateNotice:active { background: var(--v-light-green); color: white; }
 
         #appContent { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 10px 20px 40px 20px; }
@@ -50,6 +53,7 @@
     <div class="top-bar">
         <div class="header-tag">UG 67 — CÉDRIC</div>
         <button id="updateNotice" onclick="applyUpdate()">MAJ DISPONIBLE</button>
+        <div class="version-tag">V26.3</div>
     </div>
 
     <div id="appContent">
@@ -77,11 +81,9 @@
         let themeWeights = [1, 1, 1, 1, 1, 1, 1, 1];
         let reg = null;
 
-        // Gestion du Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').then(r => {
                 reg = r;
-                // Écoute les changements d'état du SW pour afficher le bouton
                 reg.addEventListener('updatefound', () => {
                     const newWorker = reg.installing;
                     newWorker.addEventListener('statechange', () => {
@@ -128,16 +130,11 @@
             }
         });
 
-        // FONCTION CRUCIALE : Appeler à chaque clic
         async function checkUpdateSilently() {
             if (!reg) return;
             const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
             const isWifi = !conn || !conn.saveData && (conn.type === 'wifi' || conn.effectiveType === '4g');
-            
-            if (isWifi) {
-                console.log("Vérification MAJ...");
-                reg.update().catch(err => console.log("Erreur MAJ:", err));
-            }
+            if (isWifi) { reg.update().catch(() => {}); }
         }
 
         function applyUpdate() {
@@ -173,7 +170,7 @@
 
         document.getElementById('mainBtn').onclick = async () => {
             await Tone.start();
-            checkUpdateSilently(); // VÉRIFIE AU CLIC
+            checkUpdateSilently();
             if (!isPlaying) {
                 isPlaying = true;
                 themeStartTime = Date.now();
@@ -193,7 +190,7 @@
         };
 
         function manualChange(n) {
-            checkUpdateSilently(); // VÉRIFIE AU CHANGEMENT DE THÈME
+            checkUpdateSilently();
             if (n === currentTheme && isPlaying) return;
             currentTheme = n;
             localStorage.setItem('lastTheme', n);
@@ -214,7 +211,7 @@
         }
 
         function toggleAuto() {
-            checkUpdateSilently(); // VÉRIFIE AU TOGGLE AUTO
+            checkUpdateSilently();
             if (arguments.length === 0) isAuto = !isAuto;
             localStorage.setItem('lastAuto', isAuto);
             const btn = document.getElementById('autoToggle');
