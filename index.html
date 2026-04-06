@@ -12,7 +12,7 @@
     <link rel="apple-touch-icon" href="https://via.placeholder.com/192/f0f9f5/a8b9ad?text=UG">
     <meta name="theme-color" content="#ffffff">
 
-    <title>UG 67 - STUDIO FINAL V24</title>
+    <title>UG 67 - STUDIO V24.2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     
     <style>
@@ -20,7 +20,15 @@
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
         body { background: var(--v-fond); color: var(--v-accent); margin: 0; padding: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         .header-tag { padding: 15px 20px; font-family: monospace; font-size: 9px; font-weight: bold; opacity: 0.3; text-transform: uppercase; letter-spacing: 1px; text-align: left; width: 100%; }
-        .container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 10px 20px 40px 20px; }
+        
+        /* Conteneur principal */
+        #appContent { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 10px 20px 40px 20px; transition: opacity 0.3s; }
+        
+        /* Écran de mise à jour */
+        #updateScreen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+        .loader { width: 40px; height: 40px; border: 2px solid #f3f3f3; border-top: 2px solid var(--v-accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         #mainBtn { width: 150px; height: 150px; border: 1px solid #f0f0f0; border-radius: 50%; background: #fcfdfc; color: var(--v-accent); font-size: 11px; letter-spacing: 5px; font-weight: 700; cursor: pointer; transition: 0.4s; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
         #mainBtn.active { background: var(--v-accent); color: #fff; border-color: var(--v-accent); transform: scale(0.95); box-shadow: 0 10px 30px rgba(45,74,62,0.1); }
         .selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 340px; }
@@ -37,9 +45,13 @@
 </head>
 <body>
 
-    <div class="header-tag">UG 67 — CÉDRIC</div>
+    <div id="updateScreen">
+        <div class="loader"></div>
+        <div style="font-size: 10px; letter-spacing: 2px; opacity: 0.6;">MISE À JOUR EN COURS...</div>
+    </div>
 
-    <div class="container">
+    <div id="appContent">
+        <div class="header-tag">UG 67 — CÉDRIC</div>
         <button id="mainBtn">START</button>
         <div class="selector">
             <button class="sel-btn active" onclick="manualChange(1)">I</button>
@@ -83,26 +95,25 @@
         let activeDeck = deckA;
         const names = ["Orchestre Noble", "Onde Hertz", "Bois de Roseau", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
 
-        // --- RELANCE AUTO APRÈS MISE À JOUR ---
         window.addEventListener('load', () => {
             if (localStorage.getItem('autoPlayAfterUpdate') === 'true') {
                 localStorage.removeItem('autoPlayAfterUpdate');
-                setTimeout(() => { 
-                    const btn = document.getElementById('mainBtn');
-                    if(btn) btn.click(); 
-                }, 800);
+                setTimeout(() => { document.getElementById('mainBtn').click(); }, 800);
             }
         });
+
+        function showUpdateScreen() {
+            document.getElementById('appContent').style.display = 'none';
+            document.getElementById('updateScreen').style.display = 'flex';
+        }
 
         function scheduleNextLoop() {
             if (!isPlaying) return;
             const p = activeDeck.players.player("t" + currentTheme);
             if (!p.buffer.loaded) { setTimeout(scheduleNextLoop, 1000); return; }
-
             const duration = p.buffer.duration;
             const fadeTime = 6; 
             const timeToWait = (duration - fadeTime) * 1000;
-
             clearTimeout(nextLoopTimeout);
             nextLoopTimeout = setTimeout(() => {
                 if (isPlaying) {
@@ -139,7 +150,6 @@
 
         document.getElementById('mainBtn').onclick = async () => {
             await Tone.start();
-            
             if (!isPlaying) {
                 const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
                 const isWifi = conn && !conn.saveData && (conn.type === 'wifi' || conn.effectiveType === '4g');
@@ -150,6 +160,7 @@
 
                     registration.onupdatefound = () => {
                         updateFound = true;
+                        showUpdateScreen(); // ON AFFICHE LE MESSAGE ICI
                         const installingWorker = registration.installing;
                         installingWorker.onstatechange = () => {
                             if (installingWorker.state === 'installed') {
