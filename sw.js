@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ug67-v26.3'; // CHANGE CE CHIFFRE À CHAQUE MAJ (ex: v26.4)
+const CACHE_NAME = 'ug67-v26.'; // CHANGE CE CHIFFRE À CHAQUE MAJ (ex: v26.4)
 const ASSETS = [
   './',
   './index.html',
