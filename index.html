@@ -12,7 +12,7 @@
     <link rel="apple-touch-icon" href="https://via.placeholder.com/192/f0f9f5/a8b9ad?text=UG">
     <meta name="theme-color" content="#ffffff">
 
-    <title>UG 67 - STUDIO V26.1</title>
+    <title>UG 67 - STUDIO V26.2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     
     <style>
@@ -20,11 +20,9 @@
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
         body { background: var(--v-fond); color: var(--v-accent); margin: 0; padding: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* Layout haut */
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; width: 100%; }
         .header-tag { font-family: monospace; font-size: 9px; font-weight: bold; opacity: 0.3; text-transform: uppercase; letter-spacing: 1px; }
         
-        /* Bouton MAJ vert clair comme les autres */
         #updateNotice { display: none; background: #fcfdfc; border: 1px solid var(--v-light-green); color: var(--v-light-green); font-size: 9px; padding: 8px 12px; border-radius: 20px; font-weight: bold; letter-spacing: 1px; cursor: pointer; transition: 0.3s; }
         #updateNotice:active { background: var(--v-light-green); color: white; }
 
@@ -79,9 +77,19 @@
         let themeWeights = [1, 1, 1, 1, 1, 1, 1, 1];
         let reg = null;
 
+        // Gestion du Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').then(r => {
                 reg = r;
+                // Écoute les changements d'état du SW pour afficher le bouton
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            document.getElementById('updateNotice').style.display = 'block';
+                        }
+                    });
+                });
                 checkUpdateSilently();
             });
         }
@@ -116,21 +124,20 @@
 
             if (localStorage.getItem('autoPlayAfterUpdate') === 'true') {
                 localStorage.removeItem('autoPlayAfterUpdate');
-                setTimeout(() => { document.getElementById('mainBtn').click(); }, 300);
+                setTimeout(() => { document.getElementById('mainBtn').click(); }, 500);
             }
         });
 
+        // FONCTION CRUCIALE : Appeler à chaque clic
         async function checkUpdateSilently() {
             if (!reg) return;
-            reg.onupdatefound = () => {
-                const installingWorker = reg.installing;
-                installingWorker.onstatechange = () => {
-                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        document.getElementById('updateNotice').style.display = 'block';
-                    }
-                };
-            };
-            reg.update();
+            const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            const isWifi = !conn || !conn.saveData && (conn.type === 'wifi' || conn.effectiveType === '4g');
+            
+            if (isWifi) {
+                console.log("Vérification MAJ...");
+                reg.update().catch(err => console.log("Erreur MAJ:", err));
+            }
         }
 
         function applyUpdate() {
@@ -166,6 +173,7 @@
 
         document.getElementById('mainBtn').onclick = async () => {
             await Tone.start();
+            checkUpdateSilently(); // VÉRIFIE AU CLIC
             if (!isPlaying) {
                 isPlaying = true;
                 themeStartTime = Date.now();
@@ -174,7 +182,6 @@
                 scheduleNextLoop();
                 document.getElementById('mainBtn').innerText = "STOP";
                 document.getElementById('mainBtn').classList.add("active");
-                checkUpdateSilently();
             } else {
                 isPlaying = false;
                 clearTimeout(nextLoopTimeout);
@@ -186,6 +193,7 @@
         };
 
         function manualChange(n) {
+            checkUpdateSilently(); // VÉRIFIE AU CHANGEMENT DE THÈME
             if (n === currentTheme && isPlaying) return;
             currentTheme = n;
             localStorage.setItem('lastTheme', n);
@@ -206,6 +214,7 @@
         }
 
         function toggleAuto() {
+            checkUpdateSilently(); // VÉRIFIE AU TOGGLE AUTO
             if (arguments.length === 0) isAuto = !isAuto;
             localStorage.setItem('lastAuto', isAuto);
             const btn = document.getElementById('autoToggle');
