@@ -12,28 +12,35 @@
     <link rel="apple-touch-icon" href="https://via.placeholder.com/192/f0f9f5/a8b9ad?text=UG">
     <meta name="theme-color" content="#ffffff">
 
-    <title>UG 67 - STUDIO V25 PERSISTANT</title>
+    <title>UG 67 - STUDIO V25.1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     
     <style>
         :root { --v-fond: #ffffff; --v-accent: #2d4a3e; --v-soft: #a8b9ad; --v-green: #4caf50; }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
         body { background: var(--v-fond); color: var(--v-accent); margin: 0; padding: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
         .header-tag { padding: 15px 20px; font-family: monospace; font-size: 9px; font-weight: bold; opacity: 0.3; text-transform: uppercase; letter-spacing: 1px; text-align: left; width: 100%; }
-        #appContent { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 10px 20px 40px 20px; }
-        #updateScreen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; }
+        
+        #updateScreen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; text-align: center; background: #fff; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; }
         .loader { width: 40px; height: 40px; border: 2px solid #f3f3f3; border-top: 2px solid var(--v-accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        #appContent { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 10px 20px 40px 20px; }
+        
         #mainBtn { width: 150px; height: 150px; border: 1px solid #f0f0f0; border-radius: 50%; background: #fcfdfc; color: var(--v-accent); font-size: 11px; letter-spacing: 5px; font-weight: 700; cursor: pointer; transition: 0.4s; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
         #mainBtn.active { background: var(--v-accent); color: #fff; border-color: var(--v-accent); transform: scale(0.95); box-shadow: 0 10px 30px rgba(45,74,62,0.1); }
+        
         .selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 340px; }
         .sel-btn { background: #fcfdfc; border: 1px solid #f8fcf9; color: var(--v-soft); font-size: 16px; height: 60px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
         .sel-btn.active { color: var(--v-accent); border-color: #eee; font-weight: bold; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        
         .auto-section { width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
         .toggle-container { width: 65px; height: 34px; background: #eee; border-radius: 20px; padding: 4px; cursor: pointer; position: relative; transition: 0.3s; }
         .toggle-container.on { background: var(--v-green); }
         .toggle-circle { width: 26px; height: 26px; background: white; border-radius: 50%; transition: 0.3s; position: absolute; top: 4px; left: 4px; }
         .toggle-container.on .toggle-circle { left: 35px; }
+        
         #themeName { font-size: 16px; font-weight: 500; color: var(--v-accent); letter-spacing: 0.5px; }
         #statusIndicator { font-size: 10px; color: var(--v-soft); font-family: monospace; letter-spacing: 1.5px; text-transform: uppercase; }
     </style>
@@ -90,9 +97,9 @@
         let activeDeck = deckA;
         const names = ["Orchestre Noble", "Onde Hertz", "Bois de Roseau", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
 
-        // --- RESTAURATION DE L'ÉTAT ---
+        // --- MÉMOIRE ET RESTAURATION ---
         window.addEventListener('load', () => {
-            // Restaurer le thème précédent
+            // 1. Restaurer le thème
             const savedTheme = localStorage.getItem('lastTheme');
             if (savedTheme) {
                 currentTheme = parseInt(savedTheme);
@@ -101,16 +108,20 @@
                 updateUI(1);
             }
 
-            // Restaurer le mode Auto (mais ne pas l'activer si ce n'était pas le cas)
+            // 2. Restaurer le mode Auto
             const savedAuto = localStorage.getItem('lastAuto');
             if (savedAuto === 'true') {
-                toggleAuto(); // On réactive le mode auto s'il l'était
+                // On simule un clic pour activer le mode auto sans lancer de boucle infinie
+                isAuto = true;
+                document.getElementById('autoToggle').classList.add('on');
+                document.getElementById('statusIndicator').innerText = "AUTOMATIQUE";
+                startAutoTimer();
             }
 
-            // Relance automatique si on vient d'une MAJ
+            // 3. Relance automatique après MAJ
             if (localStorage.getItem('autoPlayAfterUpdate') === 'true') {
                 localStorage.removeItem('autoPlayAfterUpdate');
-                setTimeout(() => { document.getElementById('mainBtn').click(); }, 1000);
+                setTimeout(() => { document.getElementById('mainBtn').click(); }, 1200);
             }
         });
 
@@ -200,7 +211,7 @@
         function manualChange(n) {
             if (n === currentTheme && isPlaying) return;
             currentTheme = n;
-            localStorage.setItem('lastTheme', n); // SAUVEGARDE
+            localStorage.setItem('lastTheme', n);
             themeStartTime = Date.now();
             lastCheckedMin = -1;
             themeWeights[n-1] += 2;
@@ -218,33 +229,41 @@
         }
 
         function toggleAuto() {
-            isAuto = !isAuto;
-            localStorage.setItem('lastAuto', isAuto); // SAUVEGARDE
-            document.getElementById('autoToggle').classList.toggle('on', isAuto);
+            if (arguments.length === 0) isAuto = !isAuto; // Seulement si clic manuel
+            localStorage.setItem('lastAuto', isAuto);
+            const btn = document.getElementById('autoToggle');
             const indicator = document.getElementById('statusIndicator');
+            
             if (isAuto) {
-                themeStartTime = Date.now();
+                btn.classList.add('on');
                 indicator.innerText = "AUTOMATIQUE";
-                autoCheckInterval = setInterval(() => {
-                    if (!isPlaying || !isAuto) return;
-                    const mins = Math.floor((Date.now() - themeStartTime) / 60000);
-                    if (lastCheckedMin !== mins) {
-                        let chance = 0;
-                        if (mins === 30) chance = 30;
-                        if (mins === 45) chance = 45;
-                        if (mins === 60) chance = 60;
-                        if (mins === 90) chance = 90;
-                        if (mins >= 100) chance = 100;
-                        if (chance > 0) {
-                            lastCheckedMin = mins;
-                            if (Math.random() * 100 < chance) pickSmartNextTheme();
-                        }
-                    }
-                }, 1000); 
+                themeStartTime = Date.now();
+                startAutoTimer();
             } else {
-                clearInterval(autoCheckInterval);
+                btn.classList.remove('on');
                 indicator.innerText = "STABLE";
+                clearInterval(autoCheckInterval);
             }
+        }
+
+        function startAutoTimer() {
+            clearInterval(autoCheckInterval);
+            autoCheckInterval = setInterval(() => {
+                if (!isPlaying || !isAuto) return;
+                const mins = Math.floor((Date.now() - themeStartTime) / 60000);
+                if (lastCheckedMin !== mins) {
+                    let chance = 0;
+                    if (mins === 30) chance = 30;
+                    if (mins === 45) chance = 45;
+                    if (mins === 60) chance = 60;
+                    if (mins === 90) chance = 90;
+                    if (mins >= 100) chance = 100;
+                    if (chance > 0) {
+                        lastCheckedMin = mins;
+                        if (Math.random() * 100 < chance) pickSmartNextTheme();
+                    }
+                }
+            }, 1000);
         }
 
         function pickSmartNextTheme() {
