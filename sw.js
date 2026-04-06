@@ -1,4 +1,6 @@
-const CACHE_NAME = 'ug67-cache-v1';
+const CACHE_NAME = 'ug67-studio-v23';
+
+// Liste des fichiers à mettre en mémoire (Audio + Interface)
 const ASSETS = [
   './',
   './index.html',
@@ -13,16 +15,41 @@ const ASSETS = [
   './theme8.mp3'
 ];
 
-// Installation : on met tout en cache
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+// 1. INSTALLATION : On télécharge tout une seule fois
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      console.log('Studio UG 67 : Mise en mémoire des fichiers...');
+      return cache.addAll(ASSETS);
+    })
+  );
+  self.skipWaiting();
+});
+
+// 2. ACTIVATION : Nettoyage des anciens caches si tu changes de version
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) return caches.delete(key);
+        })
+      );
+    })
   );
 });
 
-// Utilisation : on sert les fichiers du cache en priorité
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((res) => res || fetch(e.request))
+// 3. STRATÉGIE "CACHE FIRST" : Utilise la mémoire interne PRIORITAIREMENT
+// Cela veut dire : 0 Mo de 4G consommés une fois que c'est installé.
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      // Si le fichier est en mémoire, on l'utilise (vitesse instantanée, pas de data)
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      // Sinon, on va sur internet (seulement si pas en cache)
+      return fetch(event.request);
+    })
   );
 });
