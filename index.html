@@ -12,7 +12,7 @@
     <link rel="apple-touch-icon" href="https://via.placeholder.com/192/f0f9f5/a8b9ad?text=UG">
     <meta name="theme-color" content="#ffffff">
 
-    <title>UG 67 - STUDIO V26.7</title>
+    <title>UG 67 - STUDIO V26.8</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     
     <style>
@@ -66,7 +66,7 @@
     <div class="top-bar">
         <div class="header-tag">UG 67 — CÉDRIC</div>
         <div class="right-side">
-            <div class="version-tag">V26.7</div>
+            <div class="version-tag">V26.8</div>
             <button id="updateNotice" onclick="applyUpdate()">MAJ DISPONIBLE</button>
         </div>
     </div>
@@ -128,30 +128,20 @@
         const names = ["Orchestre Noble", "Onde Hertz", "Bois de Roseau", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
 
         window.addEventListener('load', () => {
+            // On récupère le thème
             const savedTheme = localStorage.getItem('lastTheme');
             if (savedTheme) { currentTheme = parseInt(savedTheme); updateUI(currentTheme); } 
             else { updateUI(1); }
 
+            // On récupère le mode Auto/Stable
             if (localStorage.getItem('lastAuto') === 'true') {
                 isAuto = true;
                 document.getElementById('autoToggle').classList.add('on');
                 document.getElementById('statusIndicator').innerText = "AUTOMATIQUE";
                 startAutoTimer();
             }
-
-            // Gestion de la relance après MAJ
-            if (localStorage.getItem('autoPlayAfterUpdate') === 'true') {
-                localStorage.removeItem('autoPlayAfterUpdate');
-                setTimeout(async () => {
-                    try {
-                        await Tone.start();
-                        // On simule le clic sur le bouton START
-                        document.getElementById('mainBtn').click();
-                    } catch (e) {
-                        console.log("Relance bloquée par le navigateur");
-                    }
-                }, 1000); 
-            }
+            
+            // Note: On ne force plus le START ici pour éviter les bugs navigateurs
         });
 
         async function checkUpdateSilently() {
@@ -162,9 +152,9 @@
         }
 
         function applyUpdate() {
-            // On mémorise si la musique jouait
-            localStorage.setItem('autoPlayAfterUpdate', isPlaying ? 'true' : 'false');
+            // On sauvegarde l'état nécessaire avant de rafraîchir
             localStorage.setItem('lastTheme', currentTheme);
+            localStorage.setItem('lastAuto', isAuto);
             location.reload(); 
         }
 
