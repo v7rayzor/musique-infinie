@@ -12,7 +12,7 @@
     <link rel="apple-touch-icon" href="https://via.placeholder.com/192/f0f9f5/a8b9ad?text=UG">
     <meta name="theme-color" content="#ffffff">
 
-    <title>UG 67 - STUDIO V26.6</title>
+    <title>UG 67 - STUDIO V26.7</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     
     <style>
@@ -66,7 +66,7 @@
     <div class="top-bar">
         <div class="header-tag">UG 67 — CÉDRIC</div>
         <div class="right-side">
-            <div class="version-tag">V26.6</div>
+            <div class="version-tag">V26.7</div>
             <button id="updateNotice" onclick="applyUpdate()">MAJ DISPONIBLE</button>
         </div>
     </div>
@@ -139,9 +139,18 @@
                 startAutoTimer();
             }
 
+            // Gestion de la relance après MAJ
             if (localStorage.getItem('autoPlayAfterUpdate') === 'true') {
                 localStorage.removeItem('autoPlayAfterUpdate');
-                setTimeout(() => { document.getElementById('mainBtn').click(); }, 500);
+                setTimeout(async () => {
+                    try {
+                        await Tone.start();
+                        // On simule le clic sur le bouton START
+                        document.getElementById('mainBtn').click();
+                    } catch (e) {
+                        console.log("Relance bloquée par le navigateur");
+                    }
+                }, 1000); 
             }
         });
 
@@ -153,7 +162,9 @@
         }
 
         function applyUpdate() {
+            // On mémorise si la musique jouait
             localStorage.setItem('autoPlayAfterUpdate', isPlaying ? 'true' : 'false');
+            localStorage.setItem('lastTheme', currentTheme);
             location.reload(); 
         }
 
@@ -262,7 +273,7 @@
         }
 
         function pickSmartNextTheme() {
-            checkUpdateSilently(); // <--- C'EST ICI QUE CA SE PASSE POUR L'AUTO
+            checkUpdateSilently();
             let inv = themeWeights.map(w => 1 / w);
             inv[currentTheme - 1] = 0;
             let total = inv.reduce((a, b) => a + b, 0);
