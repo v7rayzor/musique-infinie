@@ -12,141 +12,27 @@
     <link rel="apple-touch-icon" href="https://via.placeholder.com/192/f0f9f5/a8b9ad?text=UG">
     <meta name="theme-color" content="#ffffff">
 
-    <title>UG 67 - STUDIO V18.8</title>
+    <title>UG 67 - STUDIO V23.1</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     
     <style>
         :root { --v-fond: #ffffff; --v-accent: #2d4a3e; --v-soft: #a8b9ad; --v-green: #4caf50; }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
-        
-        body { 
-            background: var(--v-fond); 
-            color: var(--v-accent); 
-            margin: 0; 
-            padding: 0; 
-            font-family: sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
-            overflow: hidden; 
-        }
-
-        /* IDENTIFIANT EN HAUT À GAUCHE */
-        .header-tag { 
-            padding: 15px 20px; 
-            font-family: monospace; 
-            font-size: 9px; 
-            font-weight: bold; 
-            opacity: 0.3; 
-            text-transform: uppercase; 
-            letter-spacing: 1px;
-            text-align: left;
-            width: 100%;
-        }
-
-        .container { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: space-evenly; 
-            padding: 10px 20px 40px 20px; 
-        }
-
-        #mainBtn { 
-            width: 150px; 
-            height: 150px; 
-            border: 1px solid #f0f0f0; 
-            border-radius: 50%; 
-            background: #fcfdfc; 
-            color: var(--v-accent); 
-            font-size: 11px; 
-            letter-spacing: 5px; 
-            font-weight: 700; 
-            cursor: pointer; 
-            transition: 0.4s; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.02); 
-        }
-
-        #mainBtn.active { 
-            background: var(--v-accent); 
-            color: #fff; 
-            border-color: var(--v-accent); 
-            transform: scale(0.95); 
-            box-shadow: 0 10px 30px rgba(45,74,62,0.1); 
-        }
-
-        .selector { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 12px; 
-            width: 100%; 
-            max-width: 340px; 
-        }
-
-        .sel-btn { 
-            background: #fcfdfc; 
-            border: 1px solid #f8fcf9; 
-            color: var(--v-soft); 
-            font-size: 16px; 
-            height: 60px; 
-            border-radius: 20px; 
-            cursor: pointer; 
-            transition: 0.3s; 
-        }
-
-        .sel-btn.active { 
-            color: var(--v-accent); 
-            border-color: #eee; 
-            font-weight: bold; 
-            background: #fff; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03); 
-        }
-
-        .auto-section { 
-            width: 100%; 
-            max-width: 300px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            gap: 15px; 
-        }
-
-        .toggle-container { 
-            width: 65px; 
-            height: 34px; 
-            background: #eee; 
-            border-radius: 20px; 
-            padding: 4px; 
-            cursor: pointer; 
-            position: relative; 
-            transition: 0.3s; 
-        }
-
+        body { background: var(--v-fond); color: var(--v-accent); margin: 0; padding: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .header-tag { padding: 15px 20px; font-family: monospace; font-size: 9px; font-weight: bold; opacity: 0.3; text-transform: uppercase; letter-spacing: 1px; text-align: left; width: 100%; }
+        .container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 10px 20px 40px 20px; }
+        #mainBtn { width: 150px; height: 150px; border: 1px solid #f0f0f0; border-radius: 50%; background: #fcfdfc; color: var(--v-accent); font-size: 11px; letter-spacing: 5px; font-weight: 700; cursor: pointer; transition: 0.4s; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
+        #mainBtn.active { background: var(--v-accent); color: #fff; border-color: var(--v-accent); transform: scale(0.95); box-shadow: 0 10px 30px rgba(45,74,62,0.1); }
+        .selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 340px; }
+        .sel-btn { background: #fcfdfc; border: 1px solid #f8fcf9; color: var(--v-soft); font-size: 16px; height: 60px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
+        .sel-btn.active { color: var(--v-accent); border-color: #eee; font-weight: bold; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .auto-section { width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .toggle-container { width: 65px; height: 34px; background: #eee; border-radius: 20px; padding: 4px; cursor: pointer; position: relative; transition: 0.3s; }
         .toggle-container.on { background: var(--v-green); }
-
-        .toggle-circle { 
-            width: 26px; 
-            height: 26px; 
-            background: white; 
-            border-radius: 50%; 
-            transition: 0.3s; 
-            position: absolute; 
-            top: 4px; 
-            left: 4px; 
-        }
-
+        .toggle-circle { width: 26px; height: 26px; background: white; border-radius: 50%; transition: 0.3s; position: absolute; top: 4px; left: 4px; }
         .toggle-container.on .toggle-circle { left: 35px; }
-
         #themeName { font-size: 16px; font-weight: 500; color: var(--v-accent); letter-spacing: 0.5px; }
-        
-        #statusIndicator { 
-            font-size: 10px; 
-            color: var(--v-soft); 
-            font-family: monospace; 
-            letter-spacing: 1.5px; 
-            text-transform: uppercase; 
-        }
+        #statusIndicator { font-size: 10px; color: var(--v-soft); font-family: monospace; letter-spacing: 1.5px; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -173,7 +59,6 @@
     </div>
 
     <script>
-        // SERVICE WORKER
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(() => {});
         }
@@ -182,8 +67,8 @@
         let themeStartTime = Date.now(), lastCheckedMin = -1, nextLoopTimeout = null, autoCheckInterval = null;
         let themeWeights = [1, 1, 1, 1, 1, 1, 1, 1];
 
-        const limiter = new Tone.Limiter(-2).toDestination();
-        const mainBus = new Tone.Gain(1).connect(limiter);
+        // On garde une sortie audio simple pour éviter de surcharger le processeur
+        const mainBus = new Tone.Gain(1).toDestination();
 
         const createDeck = () => {
             const g = new Tone.Gain(0).connect(mainBus);
@@ -203,16 +88,30 @@
         function scheduleNextLoop() {
             if (!isPlaying) return;
             const p = activeDeck.players.player("t" + currentTheme);
+            
+            // Attendre que le son soit chargé avant de calculer
+            if (!p.buffer.loaded) {
+                setTimeout(scheduleNextLoop, 1000);
+                return;
+            }
+
             const duration = p.buffer.duration;
-            const timeToWait = (duration - 4.1) * 1000;
+            const fadeTime = 6; // Fondu de 6 secondes
+            const timeToWait = (duration - fadeTime) * 1000;
 
             clearTimeout(nextLoopTimeout);
             nextLoopTimeout = setTimeout(() => {
                 if (isPlaying) {
                     const nextDeck = (activeDeck === deckA) ? deckB : deckA;
-                    nextDeck.volume.gain.rampTo(1, 4);
+                    
+                    // Lancement du suivant 6 secondes avant la fin
+                    nextDeck.volume.gain.value = 0;
                     nextDeck.players.player("t" + currentTheme).start(Tone.now());
-                    activeDeck.volume.gain.rampTo(0, 4);
+                    
+                    // Fondu croisé
+                    nextDeck.volume.gain.rampTo(1, fadeTime);
+                    activeDeck.volume.gain.rampTo(0, fadeTime);
+                    
                     activeDeck = nextDeck;
                     scheduleNextLoop();
                 }
@@ -222,16 +121,18 @@
         document.getElementById('mainBtn').onclick = async () => {
             await Tone.start();
             if (!isPlaying) {
-                isPlaying = true; themeStartTime = Date.now();
+                isPlaying = true;
+                themeStartTime = Date.now();
                 activeDeck.volume.gain.value = 1;
                 activeDeck.players.player("t" + currentTheme).start(Tone.now());
                 scheduleNextLoop();
                 document.getElementById('mainBtn').innerText = "STOP";
                 document.getElementById('mainBtn').classList.add("active");
             } else {
-                isPlaying = false; 
+                isPlaying = false;
                 clearTimeout(nextLoopTimeout);
-                deckA.volume.gain.rampTo(0, 0.1); deckB.volume.gain.rampTo(0, 0.1);
+                deckA.volume.gain.rampTo(0, 0.5);
+                deckB.volume.gain.rampTo(0, 0.5);
                 document.getElementById('mainBtn').innerText = "START";
                 document.getElementById('mainBtn').classList.remove("active");
             }
@@ -240,34 +141,24 @@
         function manualChange(n) {
             if (n === currentTheme && isPlaying) return;
             currentTheme = n;
-            themeStartTime = Date.now(); lastCheckedMin = -1;
-            themeWeights[n-1] += 2; 
-
+            themeStartTime = Date.now();
+            lastCheckedMin = -1;
+            themeWeights[n-1] += 2;
             document.querySelectorAll('.sel-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === n));
             document.getElementById('themeName').innerText = names[n-1];
             
             if (isPlaying) {
                 clearTimeout(nextLoopTimeout);
-                const now = Tone.now();
                 const nextDeck = (activeDeck === deckA) ? deckB : deckA;
-
-                if (isAuto) {
-                    activeDeck.volume.gain.rampTo(0, 2);
-                    nextDeck.volume.gain.value = 0;
-                    setTimeout(() => {
-                        if(!isPlaying) return;
-                        nextDeck.players.player("t" + n).start();
-                        nextDeck.volume.gain.rampTo(1, 2);
-                        activeDeck = nextDeck;
-                        scheduleNextLoop();
-                    }, 2500);
-                } else {
-                    activeDeck.volume.gain.rampTo(0, 0.1);
-                    nextDeck.volume.gain.value = 1;
-                    nextDeck.players.player("t" + n).start(now + 0.05);
-                    activeDeck = nextDeck;
-                    scheduleNextLoop();
-                }
+                
+                // Fondu manuel fluide (4 secondes)
+                activeDeck.volume.gain.rampTo(0, 4);
+                nextDeck.volume.gain.value = 0;
+                nextDeck.players.player("t" + n).start(Tone.now() + 0.1);
+                nextDeck.volume.gain.rampTo(1, 4);
+                
+                activeDeck = nextDeck;
+                scheduleNextLoop();
             }
         }
 
@@ -275,20 +166,22 @@
             isAuto = !isAuto;
             document.getElementById('autoToggle').classList.toggle('on', isAuto);
             const indicator = document.getElementById('statusIndicator');
-            
             if (isAuto) {
                 themeStartTime = Date.now();
                 indicator.innerText = "AUTOMATIQUE";
                 autoCheckInterval = setInterval(() => {
                     if (!isPlaying || !isAuto) return;
-                    
-                    const minutesPassed = Math.floor((Date.now() - themeStartTime) / 60000);
-                    const paliers = [30, 45, 60, 75, 90, 100]; 
-                    
-                    if (paliers.includes(minutesPassed) && lastCheckedMin !== minutesPassed) {
-                        lastCheckedMin = minutesPassed;
-                        if (Math.random() * 100 < minutesPassed) {
-                            pickSmartNextTheme();
+                    const mins = Math.floor((Date.now() - themeStartTime) / 60000);
+                    if (lastCheckedMin !== mins) {
+                        let chance = 0;
+                        if (mins === 30) chance = 30;
+                        if (mins === 45) chance = 45;
+                        if (mins === 60) chance = 60;
+                        if (mins === 90) chance = 90;
+                        if (mins >= 100) chance = 100;
+                        if (chance > 0) {
+                            lastCheckedMin = mins;
+                            if (Math.random() * 100 < chance) pickSmartNextTheme();
                         }
                     }
                 }, 1000); 
@@ -299,15 +192,13 @@
         }
 
         function pickSmartNextTheme() {
-            let inverseWeights = themeWeights.map(w => 1 / w);
-            inverseWeights[currentTheme - 1] = 0;
-            let totalWeight = inverseWeights.reduce((a, b) => a + b, 0);
-            let random = Math.random() * totalWeight;
-            let cumulative = 0;
-            let nextT = 1;
-            for (let i = 0; i < inverseWeights.length; i++) {
-                cumulative += inverseWeights[i];
-                if (random < cumulative) { nextT = i + 1; break; }
+            let inv = themeWeights.map(w => 1 / w);
+            inv[currentTheme - 1] = 0;
+            let total = inv.reduce((a, b) => a + b, 0);
+            let r = Math.random() * total, cum = 0, nextT = 1;
+            for (let i = 0; i < inv.length; i++) {
+                cum += inv[i];
+                if (r < cum) { nextT = i + 1; break; }
             }
             manualChange(nextT);
         }
