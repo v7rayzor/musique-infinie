@@ -1,4 +1,4 @@
-const CACHE_NAME = 'v1.2*'; 
+const CACHE_NAME = 'ug67-v26.3'; // CHANGE CE CHIFFRE À CHAQUE MAJ (ex: v26.4)
 const ASSETS = [
   './',
   './index.html',
@@ -17,7 +17,7 @@ self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
-  self.skipWaiting(); 
+  self.skipWaiting(); // FORCE L'INSTALLATION IMMÉDIATE
 });
 
 self.addEventListener('activate', (e) => {
