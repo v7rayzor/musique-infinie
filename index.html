@@ -105,7 +105,7 @@
     <div class="top-bar">
         <div class="header-tag">UG 67 — CÉDRIC</div>
         <div class="right-side">
-            <div class="version-tag">V1.1</div>
+            <div class="version-tag">V1.2</div>
             <button id="updateNotice" onclick="applyUpdate()">MAJ DISPONIBLE</button>
         </div>
     </div>
@@ -135,12 +135,13 @@
         let themeWeights = [1, 1, 1, 1, 1, 1, 1, 1];
         let reg = null;
 
+        // --- GESTION DU RÉSEAU ET DES MAJ ---
         window.addEventListener('load', async () => {
             const blocker = document.getElementById('wifiBlocker');
             const hasCache = await caches.has('v1');
             const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
             
-            // STRICT : On bloque si pas de Wi-Fi lors de la première installation
+            // On bloque le premier lancement si ce n'est pas du Wi-Fi
             const isWifi = !conn || (conn.type === 'wifi');
 
             if (!hasCache && !isWifi) {
@@ -151,6 +152,7 @@
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').then(r => {
                     reg = r;
+                    // Écouteur qui affiche le bouton de MAJ dès que les fichiers sont prêts
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
@@ -159,6 +161,7 @@
                             }
                         });
                     });
+                    // On check au démarrage (si Wi-Fi)
                     checkUpdateSilently();
                 });
             }
@@ -175,6 +178,24 @@
             }
         });
 
+        // Fonction qui force la recherche de MAJ à chaque action utilisateur si Wi-Fi
+        async function checkUpdateSilently() {
+            if (!reg) return;
+            const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            const isWifi = !conn || (conn.type === 'wifi');
+            
+            if (isWifi) { 
+                reg.update().catch(() => {}); 
+            }
+        }
+
+        function applyUpdate() {
+            localStorage.setItem('lastTheme', currentTheme);
+            localStorage.setItem('lastAuto', isAuto);
+            location.reload(); 
+        }
+
+        // --- AUDIO ENGINE ---
         const mainBus = new Tone.Gain(1).toDestination();
 
         const createDeck = () => {
@@ -191,25 +212,10 @@
         let activeDeck = deckA;
         const names = ["Orchestre Noble", "Onde Hertz", "Bois de Roseau", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
 
-        async function checkUpdateSilently() {
-            if (!reg) return;
-            const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-            // STRICT : Mise à jour uniquement si Wi-Fi détecté
-            const isWifi = conn && (conn.type === 'wifi');
-            if (isWifi) { reg.update().catch(() => {}); }
-        }
-
-        function applyUpdate() {
-            localStorage.setItem('lastTheme', currentTheme);
-            localStorage.setItem('lastAuto', isAuto);
-            location.reload(); 
-        }
-
         function updateUI(n) {
             document.querySelectorAll('.sel-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === n));
             document.getElementById('themeName').innerText = names[n-1];
-            
-            // Boost Thème 1
+            // Correction volume Thème 1 (Boost spécifique)
             if (n === 1) { mainBus.gain.rampTo(1.8, 2); } 
             else { mainBus.gain.rampTo(1.0, 2); }
         }
@@ -235,9 +241,10 @@
             }, timeToWait);
         }
 
+        // --- INTERACTIONS ---
         document.getElementById('mainBtn').onclick = async () => {
             await Tone.start();
-            checkUpdateSilently();
+            checkUpdateSilently(); // CLIC START = CHECK MAJ
             if (!isPlaying) {
                 isPlaying = true;
                 themeStartTime = Date.now();
@@ -257,7 +264,7 @@
         };
 
         function manualChange(n) {
-            checkUpdateSilently();
+            checkUpdateSilently(); // CLIC BOUTON THEME = CHECK MAJ
             if (n === currentTheme && isPlaying) return;
             currentTheme = n;
             localStorage.setItem('lastTheme', n);
@@ -278,7 +285,7 @@
         }
 
         function toggleAuto() {
-            checkUpdateSilently();
+            checkUpdateSilently(); // CLIC AUTO = CHECK MAJ
             if (arguments.length === 0) isAuto = !isAuto;
             localStorage.setItem('lastAuto', isAuto);
             const btn = document.getElementById('autoToggle');
@@ -314,7 +321,6 @@
         }
 
         function pickSmartNextTheme() {
-            checkUpdateSilently();
             let inv = themeWeights.map(w => 1 / w);
             inv[currentTheme - 1] = 0;
             let total = inv.reduce((a, b) => a + b, 0);
@@ -323,7 +329,7 @@
                 cum += inv[i];
                 if (r < cum) { nextT = i + 1; break; }
             }
-            manualChange(nextT);
+            manualChange(nextT); // manualChange lancera checkUpdateSilently()
         }
     </script>
 </body>
