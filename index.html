@@ -82,7 +82,7 @@
 
         window.addEventListener('load', async () => {
             const blocker = document.getElementById('wifiBlocker');
-            const hasCache = await caches.has('v1');
+            const hasCache = await caches.has('v1.2');
             const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
            
             // Premier lancement : On bloque SI on est certain d'être en data (cellular)
