@@ -64,7 +64,7 @@
     <div class="top-bar">
         <div class="header-tag">UG 67 — CÉDRIC</div>
         <div class="right-side">
-            <div class="version-tag">V1</div>
+            <div class="version-tag">V1.2</div>
             <button id="updateNotice" onclick="applyUpdate()">MAJ DISPONIBLE</button>
         </div>
     </div>
@@ -94,6 +94,7 @@
         let themeWeights = [1, 1, 1, 1, 1, 1, 1, 1];
         let reg = null;
 
+        // --- GESTION SERVICE WORKER ---
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').then(r => {
                 reg = r;
@@ -105,12 +106,27 @@
                         }
                     });
                 });
-                checkUpdateSilently();
             });
         }
 
-        const mainBus = new Tone.Gain(1).toDestination();
+        // --- LOGIQUE BLOQUAGE DATA ---
+        function canIDownload() {
+            const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            if (!conn) return true; // Si l'API n'est pas supportée (Safari), on laisse passer par défaut
+            
+            // On bloque si saveData est activé OU si on est explicitement en data mobile lente
+            const isDataRestricted = conn.saveData || (conn.type !== 'wifi' && conn.effectiveType !== '4g');
+            return !isDataRestricted;
+        }
 
+        async function checkUpdateSilently() {
+            if (reg && canIDownload()) { 
+                reg.update().catch(() => {}); 
+            }
+        }
+
+        // --- AUDIO ---
+        const mainBus = new Tone.Gain(1).toDestination();
         const createDeck = () => {
             const g = new Tone.Gain(0).connect(mainBus);
             const p = new Tone.Players({
@@ -126,31 +142,19 @@
         const names = ["Orchestre Noble", "Onde Hertz", "Bois de Roseau", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
 
         window.addEventListener('load', () => {
-            // On récupère le thème
             const savedTheme = localStorage.getItem('lastTheme');
             if (savedTheme) { currentTheme = parseInt(savedTheme); updateUI(currentTheme); } 
             else { updateUI(1); }
 
-            // On récupère le mode Auto/Stable
             if (localStorage.getItem('lastAuto') === 'true') {
                 isAuto = true;
                 document.getElementById('autoToggle').classList.add('on');
                 document.getElementById('statusIndicator').innerText = "AUTOMATIQUE";
                 startAutoTimer();
             }
-            
-            // Note: On ne force plus le START ici pour éviter les bugs navigateurs
         });
 
-        async function checkUpdateSilently() {
-            if (!reg) return;
-            const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-            const isWifi = !conn || !conn.saveData && (conn.type === 'wifi' || conn.effectiveType === '4g');
-            if (isWifi) { reg.update().catch(() => {}); }
-        }
-
         function applyUpdate() {
-            // On sauvegarde l'état nécessaire avant de rafraîchir
             localStorage.setItem('lastTheme', currentTheme);
             localStorage.setItem('lastAuto', isAuto);
             location.reload(); 
@@ -164,7 +168,13 @@
         function scheduleNextLoop() {
             if (!isPlaying) return;
             const p = activeDeck.players.player("t" + currentTheme);
-            if (!p.buffer.loaded) { setTimeout(scheduleNextLoop, 1000); return; }
+            
+            if (!p.buffer.loaded) {
+                // Si pas chargé, on attend un peu
+                setTimeout(scheduleNextLoop, 1000); 
+                return; 
+            }
+
             const duration = p.buffer.duration;
             const fadeTime = 6; 
             const timeToWait = (duration - fadeTime) * 1000;
@@ -183,8 +193,14 @@
         }
 
         document.getElementById('mainBtn').onclick = async () => {
+            if (!isPlaying && !canIDownload()) {
+                alert("Action bloquée : Wi-Fi requis pour charger les sons.");
+                return;
+            }
+
             await Tone.start();
             checkUpdateSilently();
+
             if (!isPlaying) {
                 isPlaying = true;
                 themeStartTime = Date.now();
@@ -204,14 +220,21 @@
         };
 
         function manualChange(n) {
-            checkUpdateSilently();
             if (n === currentTheme && isPlaying) return;
+            
+            if (!canIDownload()) {
+                alert("Action bloquée : Wi-Fi requis pour changer de thème.");
+                return;
+            }
+
+            checkUpdateSilently();
             currentTheme = n;
             localStorage.setItem('lastTheme', n);
             themeStartTime = Date.now();
             lastCheckedMin = -1;
             themeWeights[n-1] += 2;
             updateUI(n);
+
             if (isPlaying) {
                 clearTimeout(nextLoopTimeout);
                 const nextDeck = (activeDeck === deckA) ? deckB : deckA;
@@ -261,7 +284,6 @@
         }
 
         function pickSmartNextTheme() {
-            checkUpdateSilently();
             let inv = themeWeights.map(w => 1 / w);
             inv[currentTheme - 1] = 0;
             let total = inv.reduce((a, b) => a + b, 0);
