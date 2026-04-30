@@ -4,7 +4,7 @@ const ASSETS = [
   './index.html'
 ];
 
-// Installation : on ne met en cache que le squelette de l'app
+// Installation : Mise en cache du squelette uniquement
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
@@ -23,23 +23,18 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Stratégie : Cache First, puis Network + Mise en cache dynamique
+// Stratégie : Servir le cache si présent, sinon réseau + mise en cache
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then((res) => {
-      if (res) return res; // Si c'est dans le cache, on le sert immédiatement
-
+      if (res) return res;
       return fetch(e.request).then((networkResponse) => {
-        // On ne met en cache que les fichiers réussis (status 200)
-        if (networkResponse && networkResponse.status === 200) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(e.request, responseToCache);
-          });
+        // On met en cache les MP3 dynamiquement quand ils sont demandés
+        if (networkResponse.status === 200) {
+          const resClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(e.request, resClone));
         }
         return networkResponse;
-      }).catch(() => {
-        // Optionnel : Gérer l'erreur si pas de réseau et pas de cache
       });
     })
   );
