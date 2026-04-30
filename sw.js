@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ug-67-v1';
+const CACHE_NAME = 'v1.2';
 const ASSETS = [
   './',
   './index.html',
@@ -9,38 +9,28 @@ const ASSETS = [
   './theme5.mp3',
   './theme6.mp3',
   './theme7.mp3',
-  './theme8.mp3',
-  'https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js'
+  './theme8.mp3'
 ];
 
-// Installation : on met tout en cache
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
   self.skipWaiting();
 });
 
-// Activation : on nettoie les vieux caches
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) return caches.delete(key);
-        })
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       );
     })
   );
 });
 
-// Stratégie : Cache First (on regarde dans le cache avant le réseau)
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
-    })
+    caches.match(e.request).then((res) => res || fetch(e.request))
   );
 });
