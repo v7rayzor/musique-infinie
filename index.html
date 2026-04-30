@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="UG 67">
@@ -93,6 +92,7 @@
         let themeWeights = [1, 1, 1, 1, 1, 1, 1, 1];
         let reg = null;
 
+        // --- GESTION DU SERVICE WORKER ---
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').then(r => {
                 reg = r;
@@ -104,8 +104,17 @@
                         }
                     });
                 });
-                checkUpdateSilently();
             });
+        }
+
+        // --- SÉCURITÉ WIFI / DATA ---
+        function canDownload() {
+            const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            if (!conn) return true; // Si pas d'API (Safari), on laisse passer
+            if (conn.saveData) return false;
+            // On autorise si WiFi ou si la connexion est de type '4g' (souvent utilisé pour WiFi sur mobile)
+            // Mais pour être strict WiFi : return conn.type === 'wifi';
+            return (conn.type === 'wifi' || conn.type === 'ethernet');
         }
 
         const mainBus = new Tone.Gain(1).toDestination();
@@ -125,31 +134,19 @@
         const names = ["Orchestre Noble", "Onde Hertz", "Bois de Roseau", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
 
         window.addEventListener('load', () => {
-            // On récupère le thème
             const savedTheme = localStorage.getItem('lastTheme');
             if (savedTheme) { currentTheme = parseInt(savedTheme); updateUI(currentTheme); } 
             else { updateUI(1); }
 
-            // On récupère le mode Auto/Stable
             if (localStorage.getItem('lastAuto') === 'true') {
                 isAuto = true;
                 document.getElementById('autoToggle').classList.add('on');
                 document.getElementById('statusIndicator').innerText = "AUTOMATIQUE";
                 startAutoTimer();
             }
-            
-            // Note: On ne force plus le START ici pour éviter les bugs navigateurs
         });
 
-        async function checkUpdateSilently() {
-            if (!reg) return;
-            const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-            const isWifi = !conn || !conn.saveData && (conn.type === 'wifi' || conn.effectiveType === '4g');
-            if (isWifi) { reg.update().catch(() => {}); }
-        }
-
         function applyUpdate() {
-            // On sauvegarde l'état nécessaire avant de rafraîchir
             localStorage.setItem('lastTheme', currentTheme);
             localStorage.setItem('lastAuto', isAuto);
             location.reload(); 
@@ -164,9 +161,11 @@
             if (!isPlaying) return;
             const p = activeDeck.players.player("t" + currentTheme);
             if (!p.buffer.loaded) { setTimeout(scheduleNextLoop, 1000); return; }
+            
             const duration = p.buffer.duration;
             const fadeTime = 6; 
             const timeToWait = (duration - fadeTime) * 1000;
+            
             clearTimeout(nextLoopTimeout);
             nextLoopTimeout = setTimeout(() => {
                 if (isPlaying) {
@@ -182,8 +181,13 @@
         }
 
         document.getElementById('mainBtn').onclick = async () => {
+            // Vérification WiFi au premier clic si rien n'est chargé
+            if (!deckA.players.player("t1").buffer.loaded && !canDownload()) {
+                alert("Connexion WiFi requise pour le premier téléchargement.");
+                return;
+            }
+
             await Tone.start();
-            checkUpdateSilently();
             if (!isPlaying) {
                 isPlaying = true;
                 themeStartTime = Date.now();
@@ -203,7 +207,6 @@
         };
 
         function manualChange(n) {
-            checkUpdateSilently();
             if (n === currentTheme && isPlaying) return;
             currentTheme = n;
             localStorage.setItem('lastTheme', n);
@@ -224,8 +227,7 @@
         }
 
         function toggleAuto() {
-            checkUpdateSilently();
-            if (arguments.length === 0) isAuto = !isAuto;
+            isAuto = !isAuto;
             localStorage.setItem('lastAuto', isAuto);
             const btn = document.getElementById('autoToggle');
             const indicator = document.getElementById('statusIndicator');
@@ -260,7 +262,6 @@
         }
 
         function pickSmartNextTheme() {
-            checkUpdateSilently();
             let inv = themeWeights.map(w => 1 / w);
             inv[currentTheme - 1] = 0;
             let total = inv.reduce((a, b) => a + b, 0);
