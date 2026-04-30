@@ -3,63 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="UG 67">
-    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/f0f9f5/a8b9ad?text=UG">
-    <meta name="theme-color" content="#ffffff">
-
     <title>Musique Infinie</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-    
     <style>
         :root { --v-fond: #ffffff; --v-accent: #2d4a3e; --v-soft: #a8b9ad; --v-green: #4caf50; --v-light-green: #81c784; }
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
         body { background: var(--v-fond); color: var(--v-accent); margin: 0; padding: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
+       
+        #wifiBlocker { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; }
+        .wifi-icon { font-size: 50px; margin-bottom: 25px; }
+        .wifi-text { font-size: 13px; letter-spacing: 1px; line-height: 1.8; color: var(--v-accent); text-transform: uppercase; margin-bottom: 30px; }
+        #retryBtn { background: var(--v-accent); color: white; border: none; padding: 15px 25px; border-radius: 30px; font-size: 11px; font-weight: bold; letter-spacing: 2px; cursor: pointer; text-transform: uppercase; }
+
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; width: 100%; }
         .header-tag, .version-tag { font-family: monospace; font-size: 9px; font-weight: bold; opacity: 0.3; text-transform: uppercase; letter-spacing: 1px; }
-
         .right-side { position: relative; display: flex; align-items: center; justify-content: flex-end; min-width: 80px; height: 30px; }
-        
-        #updateNotice { 
-            display: none; 
-            position: absolute;
-            right: 0;
-            background: #fcfdfc; 
-            border: 1px solid var(--v-light-green); 
-            color: var(--v-light-green); 
-            font-size: 8px; 
-            padding: 6px 10px; 
-            border-radius: 15px; 
-            font-weight: bold; 
-            letter-spacing: 1px; 
-            cursor: pointer; 
-            z-index: 10;
-            white-space: nowrap;
-        }
-        #updateNotice:active { background: var(--v-light-green); color: white; }
+       
+        #updateNotice { display: none; position: absolute; right: 0; background: #fcfdfc; border: 1px solid var(--v-light-green); color: var(--v-light-green); font-size: 8px; padding: 6px 10px; border-radius: 15px; font-weight: bold; letter-spacing: 1px; cursor: pointer; z-index: 10; white-space: nowrap; }
 
         #appContent { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 10px 20px 40px 20px; }
-        #mainBtn { width: 150px; height: 150px; border: 1px solid #f0f0f0; border-radius: 50%; background: #fcfdfc; color: var(--v-accent); font-size: 11px; letter-spacing: 5px; font-weight: 700; cursor: pointer; transition: 0.4s; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
-        #mainBtn.active { background: var(--v-accent); color: #fff; border-color: var(--v-accent); transform: scale(0.95); box-shadow: 0 10px 30px rgba(45,74,62,0.1); }
-        
+        #mainBtn { width: 150px; height: 150px; border: 1px solid #f0f0f0; border-radius: 50%; background: #fcfdfc; color: var(--v-accent); font-size: 11px; letter-spacing: 5px; font-weight: 700; cursor: pointer; transition: 0.4s; }
+        #mainBtn.active { background: var(--v-accent); color: #fff; border-color: var(--v-accent); transform: scale(0.95); }
+       
         .selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 340px; }
-        .sel-btn { background: #fcfdfc; border: 1px solid #f8fcf9; color: var(--v-soft); font-size: 16px; height: 60px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
-        .sel-btn.active { color: var(--v-accent); border-color: #eee; font-weight: bold; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
-        
+        .sel-btn { background: #fcfdfc; border: 1px solid #f8fcf9; color: var(--v-soft); font-size: 16px; height: 60px; border-radius: 20px; cursor: pointer; }
+        .sel-btn.active { color: var(--v-accent); border-color: #eee; font-weight: bold; background: #fff; }
+       
         .auto-section { width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
         .toggle-container { width: 65px; height: 34px; background: #eee; border-radius: 20px; padding: 4px; cursor: pointer; position: relative; transition: 0.3s; }
         .toggle-container.on { background: var(--v-green); }
         .toggle-circle { width: 26px; height: 26px; background: white; border-radius: 50%; transition: 0.3s; position: absolute; top: 4px; left: 4px; }
         .toggle-container.on .toggle-circle { left: 35px; }
-        
-        #themeName { font-size: 16px; font-weight: 500; color: var(--v-accent); letter-spacing: 0.5px; }
-        #statusIndicator { font-size: 10px; color: var(--v-soft); font-family: monospace; letter-spacing: 1.5px; text-transform: uppercase; }
+        #themeName { font-size: 16px; font-weight: 500; color: var(--v-accent); }
+        #statusIndicator { font-size: 10px; color: var(--v-soft); font-family: monospace; text-transform: uppercase; }
     </style>
 </head>
 <body>
+
+    <div id="wifiBlocker">
+        <div class="wifi-icon">📡</div>
+        <div class="wifi-text"><strong>Configuration Initiale</strong><br><br>Veuillez utiliser un réseau <b>Wi-Fi</b><br>pour activer votre espace sonore.</div>
+        <button id="retryBtn" onclick="location.reload()">Vérifier à nouveau</button>
+    </div>
 
     <div class="top-bar">
         <div class="header-tag">UG 67 — CÉDRIC</div>
@@ -94,38 +79,56 @@
         let themeWeights = [1, 1, 1, 1, 1, 1, 1, 1];
         let reg = null;
 
-        // --- GESTION SERVICE WORKER ---
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(r => {
-                reg = r;
-                reg.addEventListener('updatefound', () => {
-                    const newWorker = reg.installing;
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            document.getElementById('updateNotice').style.display = 'block';
-                        }
+        window.addEventListener('load', async () => {
+            const blocker = document.getElementById('wifiBlocker');
+            const hasCache = await caches.has('v1.2');
+            const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+           
+            // BLOCAGE : Si pas de cache (1er chargement) ET que la connexion est de type 'cellular'
+            if (!hasCache && conn && (conn.type === 'cellular' || conn.saveData)) {
+                blocker.style.display = 'flex';
+                return; 
+            }
+
+            // Enregistrement du SW si autorisé
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').then(r => {
+                    reg = r;
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                document.getElementById('updateNotice').style.display = 'block';
+                            }
+                        });
                     });
                 });
-            });
-        }
+            }
 
-        // --- LOGIQUE BLOQUAGE DATA ---
-        function canIDownload() {
+            const savedTheme = localStorage.getItem('lastTheme');
+            if (savedTheme) { currentTheme = parseInt(savedTheme); updateUI(currentTheme); }
+            if (localStorage.getItem('lastAuto') === 'true') {
+                isAuto = true;
+                document.getElementById('autoToggle').classList.add('on');
+                document.getElementById('statusIndicator').innerText = "AUTOMATIQUE";
+                startAutoTimer();
+            }
+        });
+
+        async function checkUpdateManual() {
+            if (!reg) return;
             const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-            if (!conn) return true; // Si l'API n'est pas supportée (Safari), on laisse passer par défaut
-            
-            // On bloque si saveData est activé OU si on est explicitement en data mobile lente
-            const isDataRestricted = conn.saveData || (conn.type !== 'wifi' && conn.effectiveType !== '4g');
-            return !isDataRestricted;
-        }
-
-        async function checkUpdateSilently() {
-            if (reg && canIDownload()) { 
-                reg.update().catch(() => {}); 
+            if (!conn || conn.type === 'wifi' || conn.effectiveType === '4g') {
+                reg.update().catch(() => {});
             }
         }
 
-        // --- AUDIO ---
+        function applyUpdate() {
+            localStorage.setItem('lastTheme', currentTheme);
+            localStorage.setItem('lastAuto', isAuto);
+            location.reload();
+        }
+
         const mainBus = new Tone.Gain(1).toDestination();
         const createDeck = () => {
             const g = new Tone.Gain(0).connect(mainBus);
@@ -141,51 +144,26 @@
         let activeDeck = deckA;
         const names = ["Orchestre Noble", "Onde Hertz", "Bois de Roseau", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
 
-        window.addEventListener('load', () => {
-            const savedTheme = localStorage.getItem('lastTheme');
-            if (savedTheme) { currentTheme = parseInt(savedTheme); updateUI(currentTheme); } 
-            else { updateUI(1); }
-
-            if (localStorage.getItem('lastAuto') === 'true') {
-                isAuto = true;
-                document.getElementById('autoToggle').classList.add('on');
-                document.getElementById('statusIndicator').innerText = "AUTOMATIQUE";
-                startAutoTimer();
-            }
-        });
-
-        function applyUpdate() {
-            localStorage.setItem('lastTheme', currentTheme);
-            localStorage.setItem('lastAuto', isAuto);
-            location.reload(); 
-        }
-
         function updateUI(n) {
             document.querySelectorAll('.sel-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === n));
             document.getElementById('themeName').innerText = names[n-1];
+            mainBus.gain.rampTo(n === 1 ? 1.8 : 1.0, 2);
         }
 
         function scheduleNextLoop() {
             if (!isPlaying) return;
             const p = activeDeck.players.player("t" + currentTheme);
-            
-            if (!p.buffer.loaded) {
-                // Si pas chargé, on attend un peu
-                setTimeout(scheduleNextLoop, 1000); 
-                return; 
-            }
-
+            if (!p.buffer.loaded) { setTimeout(scheduleNextLoop, 1000); return; }
             const duration = p.buffer.duration;
-            const fadeTime = 6; 
-            const timeToWait = (duration - fadeTime) * 1000;
+            const timeToWait = (duration - 6) * 1000;
             clearTimeout(nextLoopTimeout);
             nextLoopTimeout = setTimeout(() => {
                 if (isPlaying) {
                     const nextDeck = (activeDeck === deckA) ? deckB : deckA;
                     nextDeck.volume.gain.value = 0;
                     nextDeck.players.player("t" + currentTheme).start(Tone.now());
-                    nextDeck.volume.gain.rampTo(1, fadeTime);
-                    activeDeck.volume.gain.rampTo(0, fadeTime);
+                    nextDeck.volume.gain.rampTo(1, 6);
+                    activeDeck.volume.gain.rampTo(0, 6);
                     activeDeck = nextDeck;
                     scheduleNextLoop();
                 }
@@ -193,14 +171,8 @@
         }
 
         document.getElementById('mainBtn').onclick = async () => {
-            if (!isPlaying && !canIDownload()) {
-                alert("Action bloquée : Wi-Fi requis pour charger les sons.");
-                return;
-            }
-
             await Tone.start();
-            checkUpdateSilently();
-
+            checkUpdateManual();
             if (!isPlaying) {
                 isPlaying = true;
                 themeStartTime = Date.now();
@@ -220,21 +192,12 @@
         };
 
         function manualChange(n) {
+            checkUpdateManual();
             if (n === currentTheme && isPlaying) return;
-            
-            if (!canIDownload()) {
-                alert("Action bloquée : Wi-Fi requis pour changer de thème.");
-                return;
-            }
-
-            checkUpdateSilently();
             currentTheme = n;
             localStorage.setItem('lastTheme', n);
             themeStartTime = Date.now();
-            lastCheckedMin = -1;
-            themeWeights[n-1] += 2;
             updateUI(n);
-
             if (isPlaying) {
                 clearTimeout(nextLoopTimeout);
                 const nextDeck = (activeDeck === deckA) ? deckB : deckA;
@@ -248,19 +211,16 @@
         }
 
         function toggleAuto() {
-            checkUpdateSilently();
-            if (arguments.length === 0) isAuto = !isAuto;
+            checkUpdateManual();
+            isAuto = !isAuto;
             localStorage.setItem('lastAuto', isAuto);
             const btn = document.getElementById('autoToggle');
             const indicator = document.getElementById('statusIndicator');
             if (isAuto) {
-                btn.classList.add('on');
-                indicator.innerText = "AUTOMATIQUE";
-                themeStartTime = Date.now();
-                startAutoTimer();
+                btn.classList.add('on'); indicator.innerText = "AUTOMATIQUE";
+                themeStartTime = Date.now(); startAutoTimer();
             } else {
-                btn.classList.remove('on');
-                indicator.innerText = "STABLE";
+                btn.classList.remove('on'); indicator.innerText = "STABLE";
                 clearInterval(autoCheckInterval);
             }
         }
@@ -272,13 +232,9 @@
                 const mins = Math.floor((Date.now() - themeStartTime) / 60000);
                 if (lastCheckedMin !== mins) {
                     let chance = 0;
-                    if (mins === 30) chance = 30; if (mins === 45) chance = 45;
-                    if (mins === 60) chance = 60; if (mins === 90) chance = 90;
-                    if (mins >= 100) chance = 100;
-                    if (chance > 0) {
-                        lastCheckedMin = mins;
-                        if (Math.random() * 100 < chance) pickSmartNextTheme();
-                    }
+                    if (mins >= 30) chance = mins >= 100 ? 100 : mins;
+                    if (chance > 0 && Math.random() * 100 < chance) pickSmartNextTheme();
+                    lastCheckedMin = mins;
                 }
             }, 1000);
         }
