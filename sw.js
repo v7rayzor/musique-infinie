@@ -1,4 +1,4 @@
-const CACHE_NAME = 'v1.2.1'; // À changer pour forcer la mise à jour
+const CACHE_NAME = 'v1.2'; 
 const ASSETS = [
   './',
   './index.html'
@@ -11,12 +11,13 @@ self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
-// Nettoyage automatique de TOUTES les anciennes versions
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
+          // Supprime TOUT ce qui n'est pas le cache actuel
+          // Cela force le re-téléchargement des MP3 au prochain appel
           if (key !== CACHE_NAME) {
             return caches.delete(key);
           }
