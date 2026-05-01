@@ -21,7 +21,7 @@
         
         #updateNotice { display: none; position: absolute; right: 0; background: #fcfdfc; border: 1px solid var(--v-light-green); color: var(--v-light-green); font-size: 8px; padding: 6px 10px; border-radius: 15px; font-weight: bold; letter-spacing: 1px; cursor: pointer; z-index: 10; white-space: nowrap; }
 
-        /* MODIFICATION : On cache le contenu par défaut pour éviter le flash visuel */
+        /* Masqué par défaut pour éviter le flash visuel */
         #appContent { display: none; flex: 1; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 10px 20px 40px 20px; }
         
         #mainBtn { width: 150px; height: 150px; border: 1px solid #f0f0f0; border-radius: 50%; background: #fcfdfc; color: var(--v-accent); font-size: 11px; letter-spacing: 5px; font-weight: 700; cursor: pointer; transition: 0.4s; }
@@ -51,7 +51,7 @@
     <div class="top-bar">
         <div class="header-tag">UG 67 — CÉDRIC</div>
         <div class="right-side">
-            <div class="version-tag">V1.2</div>
+            <div class="version-tag">V1.2.1</div>
             <button id="updateNotice" onclick="applyUpdate()">MAJ DISPONIBLE</button>
         </div>
     </div>
@@ -89,17 +89,20 @@
             const hasAnyCache = keys.length > 0;
             const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
             
+            // Logique de blocage Wi-Fi intelligente
             if (!hasAnyCache && conn && (conn.type === 'cellular' || conn.saveData)) {
                 blocker.style.display = 'flex';
                 return; 
             } else {
-                // MODIFICATION : On n'affiche le contenu que si on n'est pas bloqué
                 content.style.display = 'flex';
             }
 
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').then(r => {
                     reg = r;
+                    // Vérification immédiate au chargement
+                    reg.update();
+
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
@@ -162,11 +165,9 @@
                     nextDeck.players.player("t" + currentTheme).start(Tone.now());
                     nextDeck.volume.gain.rampTo(1, 6);
                     activeDeck.volume.gain.rampTo(0, 6);
-                    
                     const oldDeck = activeDeck;
                     const oldTheme = currentTheme;
                     setTimeout(() => { if(isPlaying) oldDeck.players.player("t" + oldTheme).stop(); }, 6100);
-                    
                     activeDeck = nextDeck;
                     scheduleNextLoop();
                 }
@@ -174,6 +175,7 @@
         }
 
         document.getElementById('mainBtn').onclick = async () => {
+            if (reg) reg.update(); // Vérifie la MAJ au clic START
             await Tone.start();
             if (!isPlaying) {
                 isPlaying = true;
@@ -195,13 +197,13 @@
         };
 
         function manualChange(n) {
+            if (reg) reg.update(); // Vérifie la MAJ au changement manuel
             if (n === currentTheme && isPlaying) return;
             const oldTheme = currentTheme;
             currentTheme = n;
             localStorage.setItem('lastTheme', n);
             themeStartTime = Date.now();
             updateUI(n);
-
             if (isPlaying) {
                 clearTimeout(nextLoopTimeout);
                 const nextDeck = (activeDeck === deckA) ? deckB : deckA;
@@ -217,6 +219,7 @@
         }
 
         function toggleAuto() {
+            if (reg) reg.update();
             isAuto = !isAuto;
             localStorage.setItem('lastAuto', isAuto);
             const btn = document.getElementById('autoToggle');
@@ -245,6 +248,7 @@
         }
 
         function pickSmartNextTheme() {
+            if (reg) reg.update(); // Vérifie la MAJ au changement automatique
             let inv = themeWeights.map(w => 1 / w);
             inv[currentTheme - 1] = 0;
             let total = inv.reduce((a, b) => a + b, 0);
