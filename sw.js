@@ -1,4 +1,4 @@
-const CACHE_NAME = 'v1.2'; // À changer pour forcer la mise à jour
+const CACHE_NAME = 'v1.2.1'; // À changer pour forcer la mise à jour
 const ASSETS = [
   './',
   './index.html'
