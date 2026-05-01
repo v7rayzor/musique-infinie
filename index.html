@@ -21,7 +21,6 @@
         
         #updateNotice { display: none; position: absolute; right: 0; background: #fcfdfc; border: 1px solid var(--v-light-green); color: var(--v-light-green); font-size: 8px; padding: 6px 10px; border-radius: 15px; font-weight: bold; letter-spacing: 1px; cursor: pointer; z-index: 10; white-space: nowrap; }
 
-        /* Masqué par défaut pour éviter le flash visuel */
         #appContent { display: none; flex: 1; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 10px 20px 40px 20px; }
         
         #mainBtn { width: 150px; height: 150px; border: 1px solid #f0f0f0; border-radius: 50%; background: #fcfdfc; color: var(--v-accent); font-size: 11px; letter-spacing: 5px; font-weight: 700; cursor: pointer; transition: 0.4s; }
@@ -51,7 +50,7 @@
     <div class="top-bar">
         <div class="header-tag">UG 67 — CÉDRIC</div>
         <div class="right-side">
-            <div class="version-tag">V1.2.1</div>
+            <div class="version-tag">v1.2</div>
             <button id="updateNotice" onclick="applyUpdate()">MAJ DISPONIBLE</button>
         </div>
     </div>
@@ -89,7 +88,6 @@
             const hasAnyCache = keys.length > 0;
             const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
             
-            // Logique de blocage Wi-Fi intelligente
             if (!hasAnyCache && conn && (conn.type === 'cellular' || conn.saveData)) {
                 blocker.style.display = 'flex';
                 return; 
@@ -100,14 +98,19 @@
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').then(r => {
                     reg = r;
-                    // Vérification immédiate au chargement
                     reg.update();
 
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                document.getElementById('updateNotice').style.display = 'block';
+                                // On ne propose la MAJ que si Wi-Fi détecté
+                                const currentConn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                                const isWifi = currentConn && (currentConn.type === 'wifi' || (currentConn.effectiveType === '4g' && !currentConn.saveData));
+                                
+                                if (isWifi) {
+                                    document.getElementById('updateNotice').style.display = 'block';
+                                }
                             }
                         });
                     });
@@ -175,7 +178,7 @@
         }
 
         document.getElementById('mainBtn').onclick = async () => {
-            if (reg) reg.update(); // Vérifie la MAJ au clic START
+            if (reg) reg.update();
             await Tone.start();
             if (!isPlaying) {
                 isPlaying = true;
@@ -197,7 +200,7 @@
         };
 
         function manualChange(n) {
-            if (reg) reg.update(); // Vérifie la MAJ au changement manuel
+            if (reg) reg.update();
             if (n === currentTheme && isPlaying) return;
             const oldTheme = currentTheme;
             currentTheme = n;
@@ -248,7 +251,7 @@
         }
 
         function pickSmartNextTheme() {
-            if (reg) reg.update(); // Vérifie la MAJ au changement automatique
+            if (reg) reg.update();
             let inv = themeWeights.map(w => 1 / w);
             inv[currentTheme - 1] = 0;
             let total = inv.reduce((a, b) => a + b, 0);
