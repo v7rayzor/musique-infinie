@@ -21,7 +21,9 @@
         
         #updateNotice { display: none; position: absolute; right: 0; background: #fcfdfc; border: 1px solid var(--v-light-green); color: var(--v-light-green); font-size: 8px; padding: 6px 10px; border-radius: 15px; font-weight: bold; letter-spacing: 1px; cursor: pointer; z-index: 10; white-space: nowrap; }
 
-        #appContent { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 10px 20px 40px 20px; }
+        /* MODIFICATION : On cache le contenu par défaut pour éviter le flash visuel */
+        #appContent { display: none; flex: 1; flex-direction: column; align-items: center; justify-content: space-evenly; padding: 10px 20px 40px 20px; }
+        
         #mainBtn { width: 150px; height: 150px; border: 1px solid #f0f0f0; border-radius: 50%; background: #fcfdfc; color: var(--v-accent); font-size: 11px; letter-spacing: 5px; font-weight: 700; cursor: pointer; transition: 0.4s; }
         #mainBtn.active { background: var(--v-accent); color: #fff; border-color: var(--v-accent); transform: scale(0.95); }
         
@@ -49,7 +51,7 @@
     <div class="top-bar">
         <div class="header-tag">UG 67 — CÉDRIC</div>
         <div class="right-side">
-            <div class="version-tag" id="vDisplay">V1.3.1</div>
+            <div class="version-tag">V1.2</div>
             <button id="updateNotice" onclick="applyUpdate()">MAJ DISPONIBLE</button>
         </div>
     </div>
@@ -81,16 +83,18 @@
 
         window.addEventListener('load', async () => {
             const blocker = document.getElementById('wifiBlocker');
+            const content = document.getElementById('appContent');
             
-            // LOGIQUE FLEXIBLE : On vérifie si un cache existe, peu importe son nom
             const keys = await caches.keys();
             const hasAnyCache = keys.length > 0;
-            
             const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
             
             if (!hasAnyCache && conn && (conn.type === 'cellular' || conn.saveData)) {
                 blocker.style.display = 'flex';
                 return; 
+            } else {
+                // MODIFICATION : On n'affiche le contenu que si on n'est pas bloqué
+                content.style.display = 'flex';
             }
 
             if ('serviceWorker' in navigator) {
