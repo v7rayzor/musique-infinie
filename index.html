@@ -30,9 +30,7 @@
         .sel-btn.active { color: var(--v-accent); border-color: #eee; font-weight: bold; background: #fff; }
         
         .auto-section { width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
-        .toggle-container { width: 65px; height: 34px; background: #eee; border-radius: 20px; padding: 40px; cursor: pointer; position: relative; transition: 0.3s; }
-        /* Ajustement du padding du toggle pour mobile */
-        .toggle-container { padding: 4px; }
+        .toggle-container { width: 65px; height: 34px; background: #eee; border-radius: 20px; padding: 4px; cursor: pointer; position: relative; transition: 0.3s; }
         .toggle-container.on { background: var(--v-green); }
         .toggle-circle { width: 26px; height: 26px; background: white; border-radius: 50%; transition: 0.3s; position: absolute; top: 4px; left: 4px; }
         .toggle-container.on .toggle-circle { left: 35px; }
@@ -51,7 +49,7 @@
     <div class="top-bar">
         <div class="header-tag">UG 67 — CÉDRIC</div>
         <div class="right-side">
-            <div class="version-tag">V1.2</div>
+            <div class="version-tag" id="vDisplay">V1.3.1</div>
             <button id="updateNotice" onclick="applyUpdate()">MAJ DISPONIBLE</button>
         </div>
     </div>
@@ -83,10 +81,14 @@
 
         window.addEventListener('load', async () => {
             const blocker = document.getElementById('wifiBlocker');
-            const hasCache = await caches.has('v1.2');
+            
+            // LOGIQUE FLEXIBLE : On vérifie si un cache existe, peu importe son nom
+            const keys = await caches.keys();
+            const hasAnyCache = keys.length > 0;
+            
             const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
             
-            if (!hasCache && conn && (conn.type === 'cellular' || conn.saveData)) {
+            if (!hasAnyCache && conn && (conn.type === 'cellular' || conn.saveData)) {
                 blocker.style.display = 'flex';
                 return; 
             }
@@ -157,7 +159,6 @@
                     nextDeck.volume.gain.rampTo(1, 6);
                     activeDeck.volume.gain.rampTo(0, 6);
                     
-                    // On stoppe l'ancien deck après le fondu
                     const oldDeck = activeDeck;
                     const oldTheme = currentTheme;
                     setTimeout(() => { if(isPlaying) oldDeck.players.player("t" + oldTheme).stop(); }, 6100);
@@ -172,7 +173,6 @@
             await Tone.start();
             if (!isPlaying) {
                 isPlaying = true;
-                themeStartTime = Date.now();
                 activeDeck.volume.gain.value = 1;
                 activeDeck.players.player("t" + currentTheme).start(Tone.now());
                 scheduleNextLoop();
@@ -192,7 +192,6 @@
 
         function manualChange(n) {
             if (n === currentTheme && isPlaying) return;
-            
             const oldTheme = currentTheme;
             currentTheme = n;
             localStorage.setItem('lastTheme', n);
@@ -203,18 +202,11 @@
                 clearTimeout(nextLoopTimeout);
                 const nextDeck = (activeDeck === deckA) ? deckB : deckA;
                 const previousDeck = activeDeck;
-
                 nextDeck.volume.gain.value = 0;
                 nextDeck.players.player("t" + n).start(Tone.now() + 0.1);
                 nextDeck.volume.gain.rampTo(1, 4);
-                
                 previousDeck.volume.gain.rampTo(0, 4);
-                
-                // CORRECTION : On coupe vraiment l'ancien player après 4s
-                setTimeout(() => {
-                    previousDeck.players.player("t" + oldTheme).stop();
-                }, 4100);
-
+                setTimeout(() => { previousDeck.players.player("t" + oldTheme).stop(); }, 4100);
                 activeDeck = nextDeck;
                 scheduleNextLoop();
             }
