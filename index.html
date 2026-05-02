@@ -26,8 +26,8 @@
         #mainBtn { width: 150px; height: 150px; border: 1px solid #f0f0f0; border-radius: 50%; background: #fcfdfc; color: var(--v-accent); font-size: 11px; letter-spacing: 5px; font-weight: 700; cursor: pointer; transition: 0.4s; }
         #mainBtn.active { background: var(--v-accent); color: #fff; border-color: var(--v-accent); transform: scale(0.95); }
         
-        .selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; max-width: 340px; }
-        .sel-btn { background: #fcfdfc; border: 1px solid #f8fcf9; color: var(--v-soft); font-size: 16px; height: 60px; border-radius: 20px; cursor: pointer; }
+        .selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 340px; }
+        .sel-btn { background: #fcfdfc; border: 1px solid #f8fcf9; color: var(--v-soft); font-size: 14px; height: 60px; border-radius: 20px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
         .sel-btn.active { color: var(--v-accent); border-color: #eee; font-weight: bold; background: #fff; }
         
         .auto-section { width: 100%; max-width: 300px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
@@ -50,7 +50,7 @@
     <div class="top-bar">
         <div class="header-tag">UG 67 — CÉDRIC</div>
         <div class="right-side">
-            <div class="version-tag">v1.2</div>
+            <div class="version-tag">v1.3</div>
             <button id="updateNotice" onclick="applyUpdate()">MAJ DISPONIBLE</button>
         </div>
     </div>
@@ -58,18 +58,13 @@
     <div id="appContent">
         <button id="mainBtn">START</button>
         <div class="selector">
-            <button class="sel-btn" onclick="manualChange(1)">I</button>
-            <button class="sel-btn" onclick="manualChange(2)">II</button>
-            <button class="sel-btn" onclick="manualChange(3)">III</button>
-            <button class="sel-btn" onclick="manualChange(4)">IV</button>
-            <button class="sel-btn" onclick="manualChange(5)">V</button>
-            <button class="sel-btn" onclick="manualChange(6)">VI</button>
-            <button class="sel-btn" onclick="manualChange(7)">VII</button>
-            <button class="sel-btn" onclick="manualChange(8)">VIII</button>
+            <button class="sel-btn" onclick="manualChange(1)">TRIANGLE</button>
+            <button class="sel-btn" onclick="manualChange(2)">PIANO</button>
+            <button class="sel-btn" onclick="manualChange(3)">HARPE</button>
         </div>
         <div class="auto-section">
             <div id="autoToggle" class="toggle-container" onclick="toggleAuto()"><div class="toggle-circle"></div></div>
-            <div id="themeName">Orchestre Noble</div>
+            <div id="themeName">Triangle</div>
             <div id="statusIndicator">STABLE</div>
         </div>
     </div>
@@ -77,8 +72,11 @@
     <script>
         let isPlaying = false, isAuto = false, currentTheme = 1;
         let themeStartTime = Date.now(), lastCheckedMin = -1, nextLoopTimeout = null, autoCheckInterval = null;
-        let themeWeights = [1, 1, 1, 1, 1, 1, 1, 1];
+        let themeWeights = [1, 1, 1];
         let reg = null;
+
+        const names = ["Triangle", "Piano", "Harpe"];
+        const files = { "t1": "Triangle.mp3", "t2": "Piano.mp3", "t3": "Harpe.mp3" };
 
         window.addEventListener('load', async () => {
             const blocker = document.getElementById('wifiBlocker');
@@ -99,18 +97,13 @@
                 navigator.serviceWorker.register('sw.js').then(r => {
                     reg = r;
                     reg.update();
-
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                // On ne propose la MAJ que si Wi-Fi détecté
                                 const currentConn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
                                 const isWifi = currentConn && (currentConn.type === 'wifi' || (currentConn.effectiveType === '4g' && !currentConn.saveData));
-                                
-                                if (isWifi) {
-                                    document.getElementById('updateNotice').style.display = 'block';
-                                }
+                                if (isWifi) document.getElementById('updateNotice').style.display = 'block';
                             }
                         });
                     });
@@ -118,7 +111,7 @@
             }
 
             const savedTheme = localStorage.getItem('lastTheme');
-            if (savedTheme) { currentTheme = parseInt(savedTheme); updateUI(currentTheme); }
+            if (savedTheme && savedTheme <= 3) { currentTheme = parseInt(savedTheme); updateUI(currentTheme); }
             if (localStorage.getItem('lastAuto') === 'true') {
                 isAuto = true;
                 document.getElementById('autoToggle').classList.add('on');
@@ -136,22 +129,18 @@
         const mainBus = new Tone.Gain(1).toDestination();
         const createDeck = () => {
             const g = new Tone.Gain(0).connect(mainBus);
-            const p = new Tone.Players({
-                "t1": "theme1.mp3", "t2": "theme2.mp3", "t3": "theme3.mp3", "t4": "theme4.mp3",
-                "t5": "theme5.mp3", "t6": "theme6.mp3", "t7": "theme7.mp3", "t8": "theme8.mp3"
-            }).connect(g);
+            const p = new Tone.Players(files).connect(g);
             return { players: p, volume: g };
         };
 
         const deckA = createDeck();
         const deckB = createDeck();
         let activeDeck = deckA;
-        const names = ["Orchestre Noble", "Onde Hertz", "Harpe & Pluie", "Écho de Grotte", "Chœur de Velours", "Aube de Jade", "Souffle Sacré", "Résonance de Gorge"];
 
         function updateUI(n) {
             document.querySelectorAll('.sel-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === n));
             document.getElementById('themeName').innerText = names[n-1];
-            mainBus.gain.rampTo(n === 1 ? 1.8 : 1.0, 2);
+            mainBus.gain.rampTo(1.0, 2);
         }
 
         function scheduleNextLoop() {
