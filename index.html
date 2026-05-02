@@ -70,7 +70,7 @@
     <div class="top-bar">
         <div class="header-tag">UG 67 — CÉDRIC</div>
         <div class="right-side">
-            <div class="version-tag">v1.3</div>
+            <div class="version-tag">v1.2</div>
             <button id="updateNotice" onclick="applyUpdate()">MAJ DISPONIBLE</button>
         </div>
     </div>
@@ -98,7 +98,6 @@
         let themeStartTime = Date.now(), nextLoopTimeout = null, autoCheckInterval = null;
         let reg = null;
 
-        // Gestion des paliers : on stocke si le dé a déjà été lancé pour chaque minute clé
         let paliersTestes = { 30: false, 45: false, 60: false, 75: false, 90: false, 100: false };
 
         const names = ["Triangle", "Piano", "Harpe"];
@@ -114,6 +113,17 @@
         const deckA = createDeck();
         const deckB = createDeck();
         let activeDeck = deckA;
+
+        // Fonction pour vérifier les MAJ uniquement en Wi-Fi
+        function verifierMAJ() {
+            if (!reg) return;
+            const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            // On vérifie si on est explicitement en Wi-Fi
+            if (conn && conn.type === 'wifi') {
+                console.log("Vérification MAJ (Wi-Fi détecté)...");
+                reg.update();
+            }
+        }
 
         window.addEventListener('load', async () => {
             const blocker = document.getElementById('wifiBlocker');
@@ -140,10 +150,13 @@
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js').then(r => {
                     reg = r;
-                    reg.update();
+                    // Première vérification au lancement
+                    verifierMAJ();
+
                     reg.addEventListener('updatefound', () => {
                         const newWorker = reg.installing;
                         newWorker.addEventListener('statechange', () => {
+                            // Si le nouveau script est téléchargé et installé, on affiche le bouton
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                                 document.getElementById('updateNotice').style.display = 'block';
                             }
@@ -162,6 +175,9 @@
         }
 
         document.getElementById('mainBtn').onclick = async () => {
+            // Action utilisateur : on vérifie la MAJ
+            verifierMAJ();
+
             await Tone.start();
             const btn = document.getElementById('mainBtn');
 
@@ -192,12 +208,15 @@
 
         function resetAutoChrono() {
             themeStartTime = Date.now();
-            // On remet tous les paliers à "non testé"
             paliersTestes = { 30: false, 45: false, 60: false, 75: false, 90: false, 100: false };
         }
 
         function manualChange(n) {
             if (n === currentTheme && isPlaying) return;
+            
+            // Action utilisateur (changement de thème) : on vérifie la MAJ
+            verifierMAJ();
+
             const oldTheme = currentTheme;
             currentTheme = n;
             localStorage.setItem('lastTheme', n);
@@ -267,22 +286,19 @@
 
                 const mins = Math.floor((Date.now() - themeStartTime) / 60000);
                 
-                // On vérifie si la minute actuelle est un palier et s'il n'a pas encore été testé
                 if (paliersTestes.hasOwnProperty(mins) && paliersTestes[mins] === false) {
-                    
-                    // On marque le palier comme "testé" immédiatement pour n'avoir qu'un seul lancer
                     paliersTestes[mins] = true;
-                    
-                    let chance = mins; // La chance correspond à la minute (30, 45, 60, 75, 90, 100)
+                    let chance = mins; 
                     
                     if ((Math.random() * 100) <= chance) {
                         pickSmartNextTheme();
                     }
                 }
-            }, 1000); // Check toutes les secondes pour ne pas rater le début de la minute
+            }, 1000);
         }
 
         function pickSmartNextTheme() {
+            // Ici on appelle indirectement verifierMAJ via manualChange(nextT)
             let nextT = currentTheme;
             while(nextT === currentTheme) { nextT = Math.floor(Math.random() * 3) + 1; }
             manualChange(nextT);
