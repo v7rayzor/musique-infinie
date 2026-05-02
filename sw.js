@@ -1,9 +1,10 @@
-const CACHE_NAME = 'v1.2'; 
+const CACHE_NAME = 'v1.2';
 const ASSETS = [
   './',
   './index.html'
 ];
 
+// Installation : Mise en cache du squelette uniquement
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
@@ -11,27 +12,24 @@ self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
+// Nettoyage des anciens caches
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
-        keys.map((key) => {
-          // Supprime TOUT ce qui n'est pas le cache actuel
-          // Cela force le re-téléchargement des MP3 au prochain appel
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
+        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       );
     })
   );
 });
 
+// Stratégie : Servir le cache si présent, sinon réseau + mise en cache
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then((res) => {
       if (res) return res;
       return fetch(e.request).then((networkResponse) => {
+        // On met en cache les MP3 dynamiquement quand ils sont demandés
         if (networkResponse.status === 200) {
           const resClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(e.request, resClone));
