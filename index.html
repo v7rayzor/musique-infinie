@@ -74,8 +74,8 @@
 </head>
 <body>
 
-    <!-- Audio keep-alive element for mobile lock screen synchronization -->
-    <audio id="lockscreenBridge" loop playsinline src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA"></audio>
+    <!-- Audio keep-alive element for mobile lock screen & notification media player sync -->
+    <audio id="lockscreenBridge" loop playsinline preload="auto" src="silence.wav"></audio>
 
     <div id="wifiBlocker">
         <div class="wifi-icon">📡</div>
@@ -91,7 +91,7 @@
             <div class="header-tag">UG 67 — CÉDRIC</div>
         </div>
         <div class="right-side">
-            <div class="version-tag">v1.3</div>
+            <div class="version-tag">v1.4</div>
             <button id="updateNotice" onclick="applyUpdate()">MAJ DISPONIBLE</button>
         </div>
     </div>
@@ -141,45 +141,75 @@
         function initMediaSession() {
             if (!('mediaSession' in navigator)) return;
 
-            navigator.mediaSession.setActionHandler('play', async () => {
-                if (!isPlaying) await togglePlay();
-            });
+            const actionHandlers = [
+                ['play', async () => {
+                    if (!isPlaying) await togglePlay();
+                }],
+                ['pause', async () => {
+                    if (isPlaying) await togglePlay();
+                }],
+                ['stop', async () => {
+                    if (isPlaying) await togglePlay();
+                }],
+                ['nexttrack', () => {
+                    let nextT = currentTheme + 1;
+                    if (nextT > 3) nextT = 1;
+                    manualChange(nextT);
+                }],
+                ['previoustrack', () => {
+                    let prevT = currentTheme - 1;
+                    if (prevT < 1) prevT = 3;
+                    manualChange(prevT);
+                }],
+                ['seekforward', () => {
+                    let nextT = currentTheme + 1;
+                    if (nextT > 3) nextT = 1;
+                    manualChange(nextT);
+                }],
+                ['seekbackward', () => {
+                    let prevT = currentTheme - 1;
+                    if (prevT < 1) prevT = 3;
+                    manualChange(prevT);
+                }]
+            ];
 
-            navigator.mediaSession.setActionHandler('pause', async () => {
-                if (isPlaying) await togglePlay();
-            });
-
-            navigator.mediaSession.setActionHandler('stop', async () => {
-                if (isPlaying) await togglePlay();
-            });
-
-            navigator.mediaSession.setActionHandler('nexttrack', () => {
-                let nextT = currentTheme + 1;
-                if (nextT > 3) nextT = 1;
-                manualChange(nextT);
-            });
-
-            navigator.mediaSession.setActionHandler('previoustrack', () => {
-                let prevT = currentTheme - 1;
-                if (prevT < 1) prevT = 3;
-                manualChange(prevT);
+            actionHandlers.forEach(([action, handler]) => {
+                try {
+                    navigator.mediaSession.setActionHandler(action, handler);
+                } catch (error) {
+                    console.log(`Action ${action} non supportée.`);
+                }
             });
         }
 
         function updateMediaSession(playing) {
             if (!('mediaSession' in navigator)) return;
 
-            navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: names[currentTheme - 1],
-                artist: 'UG 67 — CÉDRIC',
-                album: 'Musique Infinie',
-                artwork: [
-                    { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
-                    { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
-                    { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml' }
-                ]
-            });
+            try {
+                navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
+                
+                const curUrl = window.location.href;
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: names[currentTheme - 1],
+                    artist: 'UG 67 — CÉDRIC',
+                    album: 'Musique Infinie',
+                    artwork: [
+                        { src: new URL('icon-192.png', curUrl).href, sizes: '192x192', type: 'image/png' },
+                        { src: new URL('icon-512.png', curUrl).href, sizes: '512x512', type: 'image/png' },
+                        { src: new URL('icon.svg', curUrl).href, sizes: 'any', type: 'image/svg+xml' }
+                    ]
+                });
+
+                if ('setPositionState' in navigator.mediaSession) {
+                    navigator.mediaSession.setPositionState({
+                        duration: 3600,
+                        playbackRate: 1,
+                        position: 0
+                    });
+                }
+            } catch (e) {
+                console.warn("MediaSession update error:", e);
+            }
         }
 
         // Fonction pour vérifier les MAJ uniquement en Wi-Fi
@@ -261,9 +291,16 @@
 
                 // Lancement du pont audio pour l'écran de verrouillage
                 if (lockscreenAudio) {
-                    lockscreenAudio.play().catch(e => console.log("Audio lockscreen bridge: ", e));
+                    lockscreenAudio.currentTime = 0;
+                    lockscreenAudio.play().then(() => {
+                        updateMediaSession(true);
+                    }).catch(e => {
+                        console.log("Audio lockscreen bridge: ", e);
+                        updateMediaSession(true);
+                    });
+                } else {
+                    updateMediaSession(true);
                 }
-                updateMediaSession(true);
             } else {
                 isPlaying = false;
                 btn.innerText = "START";
@@ -279,7 +316,9 @@
                 }, 900);
 
                 if (lockscreenAudio) {
-                    lockscreenAudio.pause();
+                    try {
+                        lockscreenAudio.pause();
+                    } catch(e) {}
                 }
                 updateMediaSession(false);
             }

@@ -1,8 +1,9 @@
-const CACHE_NAME = 'v1.3';
+const CACHE_NAME = 'v1.4';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
+  './silence.wav',
   './icon.svg',
   './icon-192.png',
   './icon-512.png'
@@ -16,14 +17,14 @@ self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
-// Nettoyage des anciens caches
+// Nettoyage des anciens caches et prise de contrôle immédiate
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
 
