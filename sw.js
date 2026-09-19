@@ -1,10 +1,14 @@
-const CACHE_NAME = 'v1.2';
+const CACHE_NAME = 'v1.3';
 const ASSETS = [
   './',
-  './index.html'
+  './index.html',
+  './manifest.json',
+  './icon.svg',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
-// Installation : Mise en cache du squelette uniquement
+// Installation : Mise en cache du squelette et des icônes
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
