@@ -75,7 +75,10 @@
 <body>
 
     <!-- Audio keep-alive element for mobile lock screen & notification media player sync -->
-    <audio id="lockscreenBridge" loop playsinline preload="auto" src="silence.wav"></audio>
+    <audio id="lockscreenBridge" loop playsinline preload="auto">
+        <source src="silence.mp3" type="audio/mp3">
+        <source src="silence.wav" type="audio/wav">
+    </audio>
 
     <div id="wifiBlocker">
         <div class="wifi-icon">📡</div>
@@ -91,7 +94,7 @@
             <div class="header-tag">UG 67 — CÉDRIC</div>
         </div>
         <div class="right-side">
-            <div class="version-tag">v1.4</div>
+            <div class="version-tag">v1.5</div>
             <button id="updateNotice" onclick="applyUpdate()">MAJ DISPONIBLE</button>
         </div>
     </div>
@@ -115,7 +118,10 @@
     </div>
 
     <script>
-        let isPlaying = false, isAuto = false, currentTheme = 1;
+        let isPlaying = false, isAuto = false;
+        // Sélection aléatoire d'un titre par défaut à chaque ouverture (1 = Triangle, 2 = Piano, 3 = Harpe)
+        let currentTheme = Math.floor(Math.random() * 3) + 1;
+        
         let themeStartTime = Date.now(), nextLoopTimeout = null, autoCheckInterval = null;
         let reg = null;
 
@@ -143,13 +149,13 @@
 
             const actionHandlers = [
                 ['play', async () => {
-                    if (!isPlaying) await togglePlay();
+                    if (!isPlaying) await startAudio();
                 }],
-                ['pause', async () => {
-                    if (isPlaying) await togglePlay();
+                ['pause', () => {
+                    if (isPlaying) stopAudio();
                 }],
-                ['stop', async () => {
-                    if (isPlaying) await togglePlay();
+                ['stop', () => {
+                    if (isPlaying) stopAudio();
                 }],
                 ['nexttrack', () => {
                     let nextT = currentTheme + 1;
@@ -196,7 +202,7 @@
                     artwork: [
                         { src: new URL('icon-192.png', curUrl).href, sizes: '192x192', type: 'image/png' },
                         { src: new URL('icon-512.png', curUrl).href, sizes: '512x512', type: 'image/png' },
-                        { src: new URL('icon.svg', curUrl).href, sizes: 'any', type: 'image/svg+xml' }
+                        { src: new URL('icon.svg', curUrl).href, sizes: '512x512', type: 'image/svg+xml' }
                     ]
                 });
 
@@ -260,9 +266,8 @@
                 });
             }
 
-            const savedTheme = localStorage.getItem('lastTheme');
-            if (savedTheme && savedTheme <= 3) { currentTheme = parseInt(savedTheme); updateUI(currentTheme); }
-            
+            // Application immédiate de la sélection aléatoire par défaut
+            updateUI(currentTheme);
             initMediaSession();
         });
 
@@ -274,53 +279,63 @@
             }
         }
 
+        async function startAudio() {
+            await Tone.start();
+            isPlaying = true;
+            const btn = document.getElementById('mainBtn');
+            btn.innerText = "STOP";
+            btn.classList.add("active");
+            resetAutoChrono();
+            
+            activeDeck.volume.gain.value = 1;
+            activeDeck.players.player("t" + currentTheme).start();
+            scheduleNextLoop();
+
+            // Lancement du pont audio pour l'écran de verrouillage
+            if (lockscreenAudio) {
+                lockscreenAudio.currentTime = 0;
+                lockscreenAudio.volume = 1.0;
+                lockscreenAudio.play().then(() => {
+                    updateMediaSession(true);
+                }).catch(e => {
+                    console.log("Audio lockscreen bridge: ", e);
+                    updateMediaSession(true);
+                });
+            } else {
+                updateMediaSession(true);
+            }
+            initMediaSession();
+        }
+
+        function stopAudio() {
+            isPlaying = false;
+            const btn = document.getElementById('mainBtn');
+            btn.innerText = "START";
+            btn.classList.remove("active");
+            
+            clearTimeout(nextLoopTimeout);
+            deckA.volume.gain.rampTo(0, 0.8);
+            deckB.volume.gain.rampTo(0, 0.8);
+            
+            setTimeout(() => {
+                deckA.players.stopAll();
+                deckB.players.stopAll();
+            }, 900);
+
+            if (lockscreenAudio) {
+                try {
+                    lockscreenAudio.pause();
+                } catch(e) {}
+            }
+            updateMediaSession(false);
+        }
+
         async function togglePlay() {
             verifierMAJ();
-            await Tone.start();
-            const btn = document.getElementById('mainBtn');
-
             if (!isPlaying) {
-                isPlaying = true;
-                btn.innerText = "STOP";
-                btn.classList.add("active");
-                resetAutoChrono();
-                
-                activeDeck.volume.gain.value = 1;
-                activeDeck.players.player("t" + currentTheme).start();
-                scheduleNextLoop();
-
-                // Lancement du pont audio pour l'écran de verrouillage
-                if (lockscreenAudio) {
-                    lockscreenAudio.currentTime = 0;
-                    lockscreenAudio.play().then(() => {
-                        updateMediaSession(true);
-                    }).catch(e => {
-                        console.log("Audio lockscreen bridge: ", e);
-                        updateMediaSession(true);
-                    });
-                } else {
-                    updateMediaSession(true);
-                }
+                await startAudio();
             } else {
-                isPlaying = false;
-                btn.innerText = "START";
-                btn.classList.remove("active");
-                
-                clearTimeout(nextLoopTimeout);
-                deckA.volume.gain.rampTo(0, 0.8);
-                deckB.volume.gain.rampTo(0, 0.8);
-                
-                setTimeout(() => {
-                    deckA.players.stopAll();
-                    deckB.players.stopAll();
-                }, 900);
-
-                if (lockscreenAudio) {
-                    try {
-                        lockscreenAudio.pause();
-                    } catch(e) {}
-                }
-                updateMediaSession(false);
+                stopAudio();
             }
         }
 
@@ -338,7 +353,6 @@
 
             const oldTheme = currentTheme;
             currentTheme = n;
-            localStorage.setItem('lastTheme', n);
             updateUI(n);
 
             resetAutoChrono();
